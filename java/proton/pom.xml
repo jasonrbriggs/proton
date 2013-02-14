@@ -11,7 +11,7 @@
 
 	<url>http://code.google.com/p/proton-te/</url>
 	<scm>
-        <url>https://proton-te.googlecode.com/hg/</url>
+        <url>https://proton-te.googlecode.com/hg/java/proton/</url>
     </scm>
 	
 	<licenses>
