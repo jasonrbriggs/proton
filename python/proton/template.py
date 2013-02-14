@@ -20,22 +20,26 @@ import os
 import re
 import sys
 
-try:
-    from io import StringIO
-except ImportError:
-    from StringIO import StringIO
+
+from io import StringIO
 
 from proton import xmlutils, utils
 
-from xml.etree import ElementTree as etree
-etree._ElementInterface.getparent = xmlutils.getparent
-__fromstring = etree.fromstring
+try:
+    from lxml import etree
+    lxml_loaded = True
+except ImportError:
+    print("WARNING: lxml is not available, performance will be affected")
+    from xml.etree import ElementTree as etree
+    etree._ElementInterface.getparent = xmlutils.getparent
+    __fromstring = etree.fromstring
 
-def fromstring(s):
-    et = __fromstring(s)
-    xmlutils.loadparents(et, None)
-    return et
-etree.fromstring = fromstring
+    def fromstring(s):
+        et = __fromstring(s)
+        xmlutils.loadparents(et, None)
+        return et
+    etree.fromstring = fromstring
+    lxml_loaded = False
 
 
 #
@@ -209,8 +213,11 @@ class AttributeMap(object):
 
         
 class Templates():
+    _singleton = None
+    
     def __init__(self, template_path=None):
         self.template_path = template_path
+        Templates._singleton = self
         
     def __getitem__(self, name):
         tmp = Template(self.template_path, name)

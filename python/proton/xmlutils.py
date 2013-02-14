@@ -13,8 +13,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from xml.etree import ElementTree as etree
-
 
 def index(elem):
     '''
@@ -32,11 +30,12 @@ def replaceelement(oldelem, newelem):
     Given a parent element, replace oldelem with newelem.
     '''
     parent = oldelem.getparent()
-    size = len(parent.getchildren())
-    for x in range(0, size):
-        if parent.getchildren()[x] == oldelem:
-            parent.remove(oldelem)
-            parent.insert(x, newelem)
+    if parent is not None:
+        size = len(parent.getchildren())
+        for x in range(0, size):
+            if parent.getchildren()[x] == oldelem:
+                parent.remove(oldelem)
+                parent.insert(x, newelem)
 
             
 def parseelement(elem):
