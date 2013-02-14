@@ -31,6 +31,9 @@ public final class Utils {
         return set;
     }
 
+    /**
+     * Return the list of get methods for a specified class.
+     */
     public static List<Method> findGetters(Class<?> clazz) {
         ArrayList<Method> methods = new ArrayList<Method>();
         for (Method method : clazz.getMethods()) {
@@ -41,11 +44,17 @@ public final class Utils {
         return methods;
     }
 
+    /**
+     * Return the name of a property (i.e. remove the "get" and lowercase the first letter).
+     */
     public static String getPropertyName(Method method) {
         String name = method.getName().substring(3);
         return name.substring(0, 1).toLowerCase() + name.substring(1);
     }
 
+    /**
+     * Invoke the getters on an object, return a map keyed by property name.
+     */
     public static Map<String, Object> invokeGetters(Object obj) throws IllegalAccessException, InvocationTargetException {
         Class<?> clazz = obj.getClass();
         if (!methodsMap.containsKey(clazz)) {

@@ -208,8 +208,11 @@ public class Template {
     public void hideElement(String eid, int index) {
         try {
             setElement(eid, HIDDEN, index, false);
-        } catch (IllegalAccessException iae) {
-        } catch (InvocationTargetException ite) { }
+        }
+        catch (IllegalAccessException iae) {
+        }
+        catch (InvocationTargetException ite) {
+        }
     }
 
     /**
@@ -245,8 +248,8 @@ public class Template {
      * @param templatePath location of the template file
      */
     public void include(String eid, String templatePath) throws ParsingException, IOException, SAXException {
-        Document doc = xmlLoader.load(templatePath);
-        setElement(eid, doc.getRootElement().copy());
+        Document newDoc = xmlLoader.load(templatePath);
+        setElement(eid, newDoc.getRootElement().copy());
     }
 
     /**
@@ -295,20 +298,21 @@ public class Template {
                 IndexedValue value = elements.get(eid);
 
                 Object val = value.pop();
-
-                if (val instanceof HiddenElement) {
-                    node.getParent().removeChild(node);
-                }
-                else if (val instanceof Element) {
-                    ParentNode parent = node.getParent();
-                    Element elem = (Element) val;
-                    parent.replaceChild(node, elem);
-                    process((Element) elem);
-                    return;
-                }
-                else {
-                    node.removeChildren();
-                    node.appendChild(val.toString());
+                if (val != null) {
+                    if (val instanceof HiddenElement) {
+                        node.getParent().removeChild(node);
+                    }
+                    else if (val instanceof Element) {
+                        ParentNode parent = node.getParent();
+                        Element elem = (Element) val;
+                        parent.replaceChild(node, elem);
+                        process((Element) elem);
+                        return;
+                    }
+                    else {
+                        node.removeChildren();
+                        node.appendChild(val.toString());
+                    }
                 }
             }
         }

@@ -39,9 +39,8 @@ public class IndexedValue {
         }
         else {
             String index = Integer.toString(idx);
-
+            idx++;
             if (values.containsKey(index)) {
-                idx++;
                 return values.get(index);
             }
             else {
