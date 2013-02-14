@@ -16,11 +16,15 @@
 
 
 import copy
-import io
 import os
 import re
 import sys
 import types    
+
+try:
+    from io import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 from proton import xmlutils, utils
 
@@ -399,7 +403,8 @@ class Template(object):
                             elem.attrib[attrname] = val(elem.attrib[attrname])
                         else:
                             elem.attrib[attrname] = val
-                    except RuntimeError as e:
+                    except RuntimeError:
+                        _, e, _ = sys.exc_info()
                         print(e)
                         pass
         
@@ -445,7 +450,7 @@ class Template(object):
             self.__iterate(child)
 
     def __str__(self):
-        self.buffer = io.StringIO()
+        self.buffer = StringIO()
         self.__iterate(self.et)
         s = self.buffer.getvalue()
         self.buffer.close()

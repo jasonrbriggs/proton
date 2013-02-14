@@ -88,11 +88,11 @@ class Template {
                     continue;
                 }
                 else if ($attr->name == 'aid') {
-                    $this->process_aid($attr->value, &$attrs);
+                    $this->process_aid($attr->value, $attrs);
                     continue;
                 }
                 else if ($attr->name == 'rid') {
-                    $this->process_rid($attr->value, &$node);
+                    $this->process_rid($attr->value, $node);
                     continue;
                 }
                 
@@ -148,7 +148,7 @@ class Template {
         return null;
     }
     
-    private function process_aid($value, $attrs) {
+    private function process_aid($value, &$attrs) {
         if (array_key_exists($value, $this->aid)) {
             if (is_array($this->aid[$value])) {
                 $keyval = current($this->aid[$value]);
@@ -162,7 +162,7 @@ class Template {
         }
     }
     
-    private function process_rid($value, $node) {
+    private function process_rid($value, &$node) {
         if (array_key_exists($value, $this->rid)) {
             if (is_array($this->rid[$value])) {
                 $count = current($this->rid[$value]);

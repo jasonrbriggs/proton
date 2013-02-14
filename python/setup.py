@@ -39,7 +39,7 @@ setup(
     version = '%s-python' % proton.__version__,
     description = 'Proton Template Engine',
     license = 'LGPL',
-    url = 'http://code.google.com/p/proton-engine/',
+    url = 'http://code.google.com/p/proton-te/',
     author = 'Jason R Briggs',
     author_email =  'jasonrbriggs@gmail.com',
     platforms = ['any'],
