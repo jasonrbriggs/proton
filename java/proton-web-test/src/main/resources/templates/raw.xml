@@ -1,0 +1,11 @@
+<organisation>
+	<id eid="orgUnitId"></id>
+	<name eid="orgUnitName"></name>
+	<address>
+		<line1 eid="addr1"></line1>
+		<line2 eid="addr2"></line2>
+		<city eid="city"></city>
+		<country eid="countryCode"></country>
+		<postcode eid="postcode"></postcode>
+	</address>
+</organisation>

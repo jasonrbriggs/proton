@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<organisations>
+	<organisation rid="organisations">
+		<id eid="orgUnitIdSummary"></id>
+		<name eid="orgUnitNameSummary"></name>
+	</organisation>
+</organisations>

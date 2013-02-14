@@ -1,0 +1,13 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+	<bean id="templates" class="proton.Templates">
+		<property name="path" value="templates" />
+	</bean>
+
+	<bean id="organisationService" class="com.somecompany.service.OrganisationServiceImpl" />
+
+	<bean id="refDataService" class="com.somecompany.service.RefDataServiceImpl" />
+	
+</beans>
