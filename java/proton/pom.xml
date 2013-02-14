@@ -4,7 +4,7 @@
 	<groupId>com.google.code.proton-te</groupId>
 	<artifactId>proton</artifactId>
 	<packaging>jar</packaging>
-	<version>0.3-SNAPSHOT</version>
+	<version>0.4-SNAPSHOT</version>
 	<name>proton</name>
 
 	<description>A simple, "code-less" XML/XHTML templating engine</description>
