@@ -10,6 +10,7 @@
 	<description>A simple, "code-less" XML/XHTML templating engine</description>
 
 	<url>http://code.google.com/p/proton-te/</url>
+	
 	<scm>
         <url>https://proton-te.googlecode.com/hg/java/proton/</url>
         <connection>scm:hg:https://proton-te.googlecode.com/hg/java/proton/</connection>
