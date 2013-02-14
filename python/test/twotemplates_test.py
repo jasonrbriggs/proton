@@ -14,7 +14,7 @@
 #
 
 import unittest
-from lxml import etree
+from xml.etree import ElementTree as etree
 from proton.template import Templates
 
 
@@ -25,11 +25,12 @@ class TestTwoTemplatesFunctionality(unittest.TestCase):
 
     def applydata(self, tmp):
         tmp.repeat('list', 2)
+        items = [ 'A', 'B' ]
         for x in range(0, 2):
             y = x + 1
             tmp.setelement('listid', str(y), x)
             tmp.setattribute('listid', 'id', str(y), x)
-            tmp.setelement('listval', 'my item %s' % y, x)
+            tmp.setelement('listval', 'my item %s' % items[x], x)
 
     def testrepeat(self):
         tmp1 = self.templates['test/twotemplates.xhtml']
@@ -37,11 +38,11 @@ class TestTwoTemplatesFunctionality(unittest.TestCase):
         print("\nXHTML:\n%s" % str(tmp1))
 
         et = etree.fromstring(str(tmp1))
-        td = et.findall('*//td')
+        td = et.findall('.//td')
         self.assert_(td[1].text == '1', 'expected 1 was %s' % td[1].text)
-        self.assert_(td[3].text == 'my item 1')
+        self.assert_(td[3].text == 'my item A')
         self.assert_(td[5].text == '2')
-        self.assert_(td[7].text == 'my item 2')
+        self.assert_(td[7].text == 'my item B')
 
         tmp2 = self.templates['test/twotemplates.xml']
         self.applydata(tmp2)

@@ -235,6 +235,7 @@ class Template(object):
     entities = { 'nbsp' : chr(160), 'copy' : chr(169) }
     elementtrees = { }
     class_cache = { }
+    doctypes = { }
     
     def __init__(self, template_path, filename):
         self.template_path = template_path
@@ -245,8 +246,8 @@ class Template(object):
         self.aid_map = AttributeMap()
         self.translate = None           # translate function
         self.buffer = None
-        self.doctype = ''
         self.translated_elements = TRANSLATED_ELEMENTS
+        self.doctype = None
 
     def __loadtree(self, filename):
         """
@@ -261,13 +262,13 @@ class Template(object):
             #parser = ElementTree.XMLTreeBuilder()
             #parser.entity.update(Template.entities)
             xml = open(path).read()
-            
-            # find the doctype of the template 
-            mat = DOCTYPE_RE.search(xml)
-            if mat:
-                self.doctype = '%s\n' % mat.group(1)
 
             et = etree.fromstring(xml.encode())
+            # find the doctype of the template
+            mat = DOCTYPE_RE.search(xml)
+            if mat:
+                Template.doctypes[self.template_path] = mat.group(1)
+
             Template.elementtrees[path] = et
             
         return copy.deepcopy(Template.elementtrees[path])    
@@ -451,7 +452,12 @@ class Template(object):
 
     def __str__(self):
         self.buffer = StringIO()
+        docinfo = self.et.getroottree().docinfo
+        self.buffer.write('<?xml version="%s" encoding="%s"?>\n' % (docinfo.xml_version, docinfo.encoding))
+        if self.template_path in Template.doctypes:
+            self.buffer.write(Template.doctypes[self.template_path])
+            self.buffer.write("\n")
         self.__iterate(self.et)
         s = self.buffer.getvalue()
         self.buffer.close()
-        return self.doctype + s
+        return s

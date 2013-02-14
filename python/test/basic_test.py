@@ -47,14 +47,12 @@ class TestBasicFunctionality(unittest.TestCase):
         tmp.setelement('title', 'Basic Xhtml Page', '*')
 
         out1 = str(tmp)
-        print(out1)
         et1 = etree.fromstring(out1)
 
         tmp = self.templates['test/basic.xhtml']
         tmp.setelement('title', 'Basic Xhtml Page 2', '*')
 
         out2 = str(tmp)
-        print(out2)
         et2 = etree.fromstring(out2)
 
         self.assert_(et1.find('head/title').text == 'Basic Xhtml Page', 'incorrect title')
@@ -72,4 +70,3 @@ class TestBasicFunctionality(unittest.TestCase):
         tmp.setelement('last-modified', '2012-01-02T23:59:59', 1)
 
         out = str(tmp)
-        print(out)

@@ -14,7 +14,7 @@
 #
 
 import unittest
-from lxml import etree
+from xml.etree import ElementTree as etree
 from proton.template import Templates
 
 class TestHidingFunctionality(unittest.TestCase):
@@ -27,7 +27,9 @@ class TestHidingFunctionality(unittest.TestCase):
         tmp.setelement('title', 'Hiding Xhtml Page', '*')
         tmp.hide('hidden-element')
 
-        et = etree.fromstring(str(tmp))
+        out = str(tmp)
+        print(out)
+        et = etree.fromstring(out)
 
         self.assert_(et.find('body/div') == None, 'div should have been removed')
         

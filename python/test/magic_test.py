@@ -14,7 +14,7 @@
 #
 
 import unittest
-import xml.etree.ElementTree
+from xml.etree import ElementTree as etree
 from proton.template import Templates
 
 class Temp(object):
@@ -44,8 +44,8 @@ class TestMagicFunctionality(unittest.TestCase):
         
         out = str(tmp)
         print(out)
-        etree = xml.etree.ElementTree.fromstring(out)
-        li = etree.findall('body/ul/li')
+        et = etree.fromstring(out)
+        li = et.findall('body/ul/li')
         
         self.assert_(li[0].text == 'a')
         self.assert_(li[1].text == 'b')
@@ -58,8 +58,8 @@ class TestMagicFunctionality(unittest.TestCase):
         t = Temp('100', '500')
         tmp.setelement('prop', t)
         
-        etree = xml.etree.ElementTree.fromstring(str(tmp))
-        dd = etree.findall('body/dl/dd')
+        et = etree.fromstring(str(tmp))
+        dd = et.findall('body/dl/dd')
         self.assert_(dd[0].text == '100')
         self.assert_(dd[1].text == '500')
 
