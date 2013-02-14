@@ -69,8 +69,8 @@ public class BasicTest extends ProtonTest {
         tmp.setAttribute("link", "href", "http://www.google.com");
 
         tmp.repeatElement("list-item", 5);
-        for (int i = 1; i < 6; i++) {
-            tmp.setElement("list-item", "test" + i, i);
+        for (int i = 0, j = 1; i < 5; i++, j++) {
+            tmp.setElement("list-item", "test" + j, i);
         }
 
         Document doc = loadXml(tmp);

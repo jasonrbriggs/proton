@@ -110,7 +110,7 @@ public class Template {
      */
     public void setElement(String eid, Object content) {
         try {
-            setElement(eid, content, 1, false);
+            setElement(eid, content, 0, false);
         } catch (IllegalAccessException iae) {
         } catch (InvocationTargetException ite) { }
     }
@@ -127,7 +127,7 @@ public class Template {
      *
      * @param eid the eid of the element to set
      * @param content the data to set as the value of this element
-     * @param the specific occurrence to set (from 1-n, if less than 1 then set all elements with matching eid)
+     * @param the specific occurrence to set (from 0-n, if less than 0 then set all elements with matching eid)
      */
     public void setElement(String eid, Object content, int index, boolean introspect) throws IllegalAccessException, InvocationTargetException {
         if (content == null) {
@@ -167,7 +167,7 @@ public class Template {
      * @param content the attribute value -- if an empty string, this is equivalent to removing the attribute
      */
     public void setAttribute(String aid, String attrName, String content) {
-        setAttribute(aid, attrName, content, 1);
+        setAttribute(aid, attrName, content, 0);
     }
 
     /**
@@ -203,7 +203,7 @@ public class Template {
      * Hide the specific occurrence of an element with the matching eid.
      *
      * @param eid the eid of the attribute to hide
-     * @param index the specific occurrence (from 1-n)
+     * @param index the specific occurrence (from 0-n)
      */
     public void hideElement(String eid, int index) {
         try {
@@ -222,7 +222,7 @@ public class Template {
      * @param count the number of times this element should be repeated
      */
     public void repeatElement(String eid, int count) {
-        repeatElement(eid, count, 1);
+        repeatElement(eid, count, 0);
     }
 
     /**
@@ -230,7 +230,7 @@ public class Template {
      *
      * @param eid the eid of the element to repeat
      * @param count the number of times this element should be repeated
-     * @param index the specific occurrence (from 1-n)
+     * @param index the specific occurrence (from 0-n)
      */
     public void repeatElement(String eid, int count, int index) {
         if (!repeats.containsKey(eid)) {

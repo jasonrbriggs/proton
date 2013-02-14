@@ -13,7 +13,7 @@ public class IndexedValue {
 
     private HashMap<String, Object> values = new HashMap<String, Object>();
 
-    private int idx = 1;
+    private int idx = 0;
 
     public IndexedValue() {
     }
@@ -22,7 +22,7 @@ public class IndexedValue {
      * Set the specified index to a value.  If the index is less than 1, set the wildcard to this value.
      */
     public void set(Object value, int index) {
-        if (index > 0) {
+        if (index >= 0) {
             values.put(Integer.toString(index), value);
         }
         else {

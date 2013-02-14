@@ -42,24 +42,23 @@ public class BenchmarkTest extends ProtonTest {
             tmp.repeatElement("data", data.size());
             for (int j = 0; j < data.size(); j++) {
                 Datum d = data.get(j);
-                int j1 = j + 1;
-                tmp.setAttribute("clazz", "class", d.getClazz(), j1);
-                tmp.setElement("id", d.getId(), j1);
-                tmp.setAttribute("symbol", "href", "/stock/" + d.getSymbol(), j1);
-                tmp.setElement("symbol", d.getSymbol(), j1);
-                tmp.setAttribute("url", "href", d.getUrl(), j1);
-                tmp.setElement("name", d.getName(), j1);
-                tmp.setElement("price", d.getPrice(), j1);
+                tmp.setAttribute("clazz", "class", d.getClazz(), j);
+                tmp.setElement("id", d.getId(), j);
+                tmp.setAttribute("symbol", "href", "/stock/" + d.getSymbol(), j);
+                tmp.setElement("symbol", d.getSymbol(), j);
+                tmp.setAttribute("url", "href", d.getUrl(), j);
+                tmp.setElement("name", d.getName(), j);
+                tmp.setElement("price", d.getPrice(), j);
                 if (d.getChange() < 0) {
-                    tmp.hideElement("azchange", j1);
-                    tmp.hideElement("azratio", j1);
-                    tmp.setElement("bzchange", Float.toString(d.getChange()), j1);
-                    tmp.setElement("bzratio", d.getRatio(), j1);
+                    tmp.hideElement("azchange", j);
+                    tmp.hideElement("azratio", j);
+                    tmp.setElement("bzchange", Float.toString(d.getChange()), j);
+                    tmp.setElement("bzratio", d.getRatio(), j);
                 } else {
-                    tmp.hideElement("bzchange", j1);
-                    tmp.hideElement("bzratio", j1);
-                    tmp.setElement("azchange", Float.toString(d.getChange()), j1);
-                    tmp.setElement("azratio", d.getRatio(), j1);
+                    tmp.hideElement("bzchange", j);
+                    tmp.hideElement("bzratio", j);
+                    tmp.setElement("azchange", Float.toString(d.getChange()), j);
+                    tmp.setElement("azratio", d.getRatio(), j);
                 }
             }
             tmp.toString();
@@ -77,7 +76,5 @@ public class BenchmarkTest extends ProtonTest {
 
         float real  = end_t - start_t;
         System.out.println("Time taken " + real);
-
     }
-    
 }

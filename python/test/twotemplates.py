@@ -25,10 +25,11 @@ class TestTwoTemplatesFunctionality(unittest.TestCase):
 
     def applydata(self, tmp):
         tmp.repeat('list', 2)
-        for x in range(1, 3):
-            tmp.setelement('listid', str(x), x)
-            tmp.setattribute('listid', 'id', str(x), x)
-            tmp.setelement('listval', 'my item %s' % x, x)
+        for x in range(0, 2):
+            y = x + 1
+            tmp.setelement('listid', str(y), x)
+            tmp.setattribute('listid', 'id', str(y), x)
+            tmp.setelement('listval', 'my item %s' % y, x)
 
     def testrepeat(self):
         tmp1 = self.templates['test/twotemplates.xhtml']

@@ -34,10 +34,10 @@ public class AdvancedTest extends ProtonTest {
 
     private void applyTwoTemplatesData(Template tmp) {
         tmp.repeatElement("list", 2);
-        for (int i = 1; i < 3; i++) {
-            tmp.setElement("listid", Integer.toString(i), i);
-            tmp.setAttribute("listid", "id", Integer.toString(i), i);
-            tmp.setElement("listval", "my item " + i, i);
+        for (int i = 0, j = 1; i < 2; i++, j++) {
+            tmp.setElement("listid", Integer.toString(j), i);
+            tmp.setAttribute("listid", "id", Integer.toString(j), i);
+            tmp.setElement("listval", "my item " + j, i);
         }
     }
 
@@ -77,7 +77,7 @@ public class AdvancedTest extends ProtonTest {
         Template tmp = templates.get("magic-props.xhtml");
 
         PropTest propTest = new PropTest("100", "500");
-        tmp.setElement("prop", propTest, 1, true);
+        tmp.setElement("prop", propTest, 0, true);
 
         String out = tmp.toString();
         System.out.println(out);

@@ -40,24 +40,23 @@ def run(times):
         tmp.repeat('data', len(data))
         for y in range(0, len(data)):
             d = data[y]
-            y1 = y + 1
-            tmp.setattribute('clazz', 'class', d.clazz, y1)
-            tmp.setelement('id', str(d.id), y1)
-            tmp.setattribute('symbol', 'href', '/stock/%s' % d.symbol, y1)
-            tmp.setelement('symbol', d.symbol, y1)
-            tmp.setattribute('url', 'href', d.url, y1)
-            tmp.setelement('name', d.name, y1)
-            tmp.setelement('price', d.price, y1)
+            tmp.setattribute('clazz', 'class', d.clazz, y)
+            tmp.setelement('id', str(d.id), y)
+            tmp.setattribute('symbol', 'href', '/stock/%s' % d.symbol, y)
+            tmp.setelement('symbol', d.symbol, y)
+            tmp.setattribute('url', 'href', d.url, y)
+            tmp.setelement('name', d.name, y)
+            tmp.setelement('price', d.price, y)
             if float(d.change) < 0:
-                tmp.hide('azchange', y1)
-                tmp.hide('azratio', y1)
-                tmp.setelement('bzchange', d.change, y1)
-                tmp.setelement('bzratio', d.ratio, y1)
+                tmp.hide('azchange', y)
+                tmp.hide('azratio', y)
+                tmp.setelement('bzchange', d.change, y)
+                tmp.setelement('bzratio', d.ratio, y)
             else:
-                tmp.hide('bzchange', y1)
-                tmp.hide('bzratio', y1)
-                tmp.setelement('azchange', d.change, y1)
-                tmp.setelement('azratio', d.ratio, y1)
+                tmp.hide('bzchange', y)
+                tmp.hide('bzratio', y)
+                tmp.setelement('azchange', d.change, y)
+                tmp.setelement('azratio', d.ratio, y)
         str(tmp)
 
 

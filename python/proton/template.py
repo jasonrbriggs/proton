@@ -153,11 +153,10 @@ class ValueMap(object):
         self.valmap = { }
         self.iterators = { }
         
-    def setvalue(self, key, value, index=1):
+    def setvalue(self, key, value, index = 0):
         if index == '*':
             self.valmap[key] = EternalIterator(value)
         else:
-            index = index - 1
             if key not in self.valmap:
                 self.valmap[key] = [ ]
             if index >= len(self.valmap[key]):
@@ -201,7 +200,7 @@ class AttributeMap(object):
     def __getitem__(self, key):
         return self.attmap[key]
         
-    def setattribute(self, key, attname, attval, index = 1):
+    def setattribute(self, key, attname, attval, index = 0):
         if key not in self.attmap:
             self.attmap[key] = ValueMap()
         self.attmap[key].setvalue(attname, attval, index)
@@ -268,10 +267,10 @@ class Template(object):
         else:
             return copy.deepcopy(Template.elementtrees[path])    
 
-    def append(self, eid, xml, index=1):
+    def append(self, eid, xml, index = 0):
         self.setelement(eid, Append(xml), index)
         
-    def hide(self, eid, index=1):
+    def hide(self, eid, index = 0):
         self.setelement(eid, Hide(), index)
         
     def include(self, eid, filename):
@@ -283,7 +282,7 @@ class Template(object):
         """
         self.template_map[eid] = self.__loadtree(filename)
         
-    def repeat(self, rid, count, index=1, childrenonly=False):
+    def repeat(self, rid, count, index = 0, childrenonly = False):
         """
         Repeat either an element, or its children a number of times
         
@@ -293,16 +292,16 @@ class Template(object):
         """
         self.rid_map.setvalue(rid, Repeater(count, childrenonly), index)
         
-    def replaceattribute(self, aid, attname, arguments, index=1):
+    def replaceattribute(self, aid, attname, arguments, index = 0):
         self.setattribute(aid, attname, Replace(arguments, self.translate), index)
         
-    def replaceelement(self, eid, arguments, index=1):
+    def replaceelement(self, eid, arguments, index = 0):
         self.setelement(eid, Replace(arguments, self.translate), index)
         
-    def setattribute(self, aid, attname, value, index=1):
+    def setattribute(self, aid, attname, value, index = 0):
         self.aid_map.setattribute(aid, attname, value, index)
         
-    def setelement(self, eid, value, index=1):
+    def setelement(self, eid, value, index = 0):
         if type(value) in SEQ_TYPES:
             self.repeat(eid, len(value))
             for x in range(0, len(value)):
@@ -313,7 +312,7 @@ class Template(object):
         self.eid_map.setvalue(eid, value, index)
         self.__setproperties(eid, value, index)
         
-    def __setproperties(self, eid, value, index=1):
+    def __setproperties(self, eid, value, index = 0):
         if value.__class__ not in Template.class_cache:
             props = [ ]
             for name in dir(value.__class__):
@@ -326,7 +325,7 @@ class Template(object):
             self.setelement(elemname, prop.fget(value), index)
             self.setattribute(eid, name, prop.fget(value), index)
         
-    def __iterate(self, elem, write=True):
+    def __iterate(self, elem, write = True):
         if 'rid' in elem.attrib:
             rid = elem.attrib.pop('rid')
             if rid in self.rid_map:

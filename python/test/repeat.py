@@ -31,7 +31,7 @@ class TestRepeatingFunctionality(unittest.TestCase):
         tmp.setattribute('link', 'href', 'http://www.google.com')
         
         tmp.repeat('list-item', 5)
-        for x in range(1, 6):
+        for x in range(0, 5):
             tmp.setelement('list-item', 'test%s' % x, x)
 
         out = str(tmp)
@@ -40,8 +40,8 @@ class TestRepeatingFunctionality(unittest.TestCase):
         et = etree.fromstring(out)
         li = et.findall('body/ul/li')
         self.assert_(len(li) == 5)
-        for x in range(1, 6):
-            self.assert_(li[x-1].text == 'test%s' % x, 'expecting test%s, actual %s' % (x, li[x-1].text))
+        for x in range(0, 5):
+            self.assert_(li[x].text == 'test%s' % x, 'expecting test%s, actual %s' % (x, li[x].text))
         
 suite = unittest.TestLoader().loadTestsFromTestCase(TestRepeatingFunctionality)
 unittest.TextTestRunner(verbosity=2).run(suite)

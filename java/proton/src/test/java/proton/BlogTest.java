@@ -20,12 +20,12 @@ public class BlogTest extends ProtonTest {
         Date now = new Date();
 
         tmp.setElement("title", "My Test Blog");
-        tmp.setElement("menu", getMenu(), 1, true);
-        tmp.setElement("blogroll", getBlogRoll(), 1, true);
+        tmp.setElement("menu", getMenu(), 0, true);
+        tmp.setElement("blogroll", getBlogRoll(), 0, true);
 
         Post post = new Post("My First Post", "joe@bloggs.com", now, "This is my first post...\n...and what a great post it is.");
 
-        tmp.setElement("post", post, 1, true);
+        tmp.setElement("post", post, 0, true);
 
         String out = tmp.toString();
         System.out.println(out);
