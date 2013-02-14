@@ -36,7 +36,7 @@ class TestCommand(Command):
 
 setup(
     name = 'proton',
-    version = proton.__version__,
+    version = '%s-python' % proton.__version__,
     description = 'Proton Template Engine',
     license = 'LGPL',
     url = 'http://code.google.com/p/proton-engine/',
