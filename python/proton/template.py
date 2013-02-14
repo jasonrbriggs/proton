@@ -30,6 +30,7 @@ from proton import xmlutils, utils
 
 try:
     from lxml import etree
+    lxml_loaded = True
 except ImportError:
     print("WARNING: lxml is not available, performance will be affected")
     from xml.etree import ElementTree as etree
@@ -41,6 +42,7 @@ except ImportError:
         xmlutils.loadparents(et, None)
         return et
     etree.fromstring = fromstring
+    lxml_loaded = False
 
 
 #
@@ -152,6 +154,9 @@ class EternalIterator(object):
     def pop(self):
         return self.value
 
+    def __str__(self):
+        return str(self.value)
+
 class ValueMap(object):
     def __init__(self):
         self.valmap = { }
@@ -195,6 +200,9 @@ class ValueMap(object):
         
     def keys(self):
         return self.valmap.keys()
+
+    def __str__(self):
+        return str(self.valmap)
 
 
 class AttributeMap(object):
@@ -255,7 +263,7 @@ class Template(object):
         else:
             path = filename
             
-        if path not in Template.elementtrees:
+        if lxml_loaded or path not in Template.elementtrees:
             #parser = ElementTree.XMLTreeBuilder()
             #parser.entity.update(Template.entities)
             xml = open(path).read()
@@ -266,10 +274,11 @@ class Template(object):
                 self.doctype = '%s\n' % mat.group(1)
 
             et = etree.fromstring(xml.encode())
-            Template.elementtrees[path] = et
+            if not lxml_loaded:
+                Template.elementtrees[path] = et
             return et
-        else:
-            return copy.deepcopy(Template.elementtrees[path])    
+
+        return copy.deepcopy(Template.elementtrees[path])
 
     def append(self, eid, xml, index = 0):
         self.setelement(eid, Append(xml), index)
@@ -361,7 +370,7 @@ class Template(object):
         if self.translate and elem.text and utils.clean(elem.text) != '' \
                 and elem.tag in self.translated_elements:
             elem.text = self.translate(elem.text)
-                    
+
         if 'eid' in elem.attrib:
             eid = elem.attrib.pop('eid')
             if eid in self.template_map:
@@ -383,7 +392,8 @@ class Template(object):
                     else:
                         elem.text = val
                     if ELEM_RE.search(elem.text) >= 0:
-                        xmlutils.parseelement(elem) 
+                        xmlutils.parseelement(elem)
+
                     elem.text = elem.text.replace('&lt;', '<').replace('&gt;', '>')
                 except:
                     pass

@@ -22,7 +22,7 @@ class TestBasicFunctionality(unittest.TestCase):
 
     def setUp(self):
         self.templates = Templates()
-
+    '''
     def testbasic(self):
         tmp = self.templates['test/basic.xhtml']
         tmp.setelement('title', 'Basic Xhtml Page', '*')
@@ -39,6 +39,23 @@ class TestBasicFunctionality(unittest.TestCase):
         self.assert_(et.find('body/div').text == 'Content goes here', 'incorrect body')
         self.assert_(et.find('body/a').text == 'Link goes here', 'incorrect anchor text')
         self.assert_(et.find('body/a').attrib['href'] == 'http://www.google.com', 'incorrect anchor href')
+    '''
+
+    def testbasictwice(self):
+        tmp = self.templates['test/basic.xhtml']
+        tmp.setelement('title', 'Basic Xhtml Page', '*')
+
+        out1 = str(tmp)
+        et1 = etree.fromstring(out1)
+
+        tmp = self.templates['test/basic.xhtml']
+        tmp.setelement('title', 'Basic Xhtml Page 2', '*')
+
+        out2 = str(tmp)
+        et2 = etree.fromstring(out2)
+
+        self.assert_(et1.find('head/title').text == 'Basic Xhtml Page', 'incorrect title')
+        self.assert_(et2.find('head/title').text == 'Basic Xhtml Page 2', 'incorrect title')
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestBasicFunctionality)
