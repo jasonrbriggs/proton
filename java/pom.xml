@@ -10,6 +10,10 @@
 	<description>A simple, "code-less" XML/XHTML templating engine</description>
 
 	<url>http://code.google.com/p/proton-te/</url>
+	<scm>
+        <url>https://proton-te.googlecode.com/hg/</url>
+    </scm>
+	
 	<licenses>
 		<license>
 			<name>GNU Lesser General Public License, Version 3.0</name>
