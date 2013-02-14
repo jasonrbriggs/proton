@@ -15,6 +15,7 @@
 
 from distutils.core import setup, Command
 import proton
+import unittest
 
 class TestCommand(Command):
     user_options = [ ('test=', 't', 'specific test to run') ]
@@ -26,12 +27,14 @@ class TestCommand(Command):
         pass
 
     def run(self):
+        suite = unittest.TestSuite()
         if self.test == '*':
             import test
             for tst in test.__all__:
-                exec('import test.%s' % tst)
+                suite.addTests(unittest.TestLoader().loadTestsFromName('test.%s' % tst))
         else:
-            exec('import test.%s' % self.test)
+            suite = unittest.TestLoader().loadTestsFromName('test.%s' % self.test)
+        unittest.TextTestRunner(verbosity=2).run(suite)
 
 
 setup(

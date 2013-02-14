@@ -19,7 +19,6 @@ import copy
 import os
 import re
 import sys
-import types    
 
 try:
     from io import StringIO
@@ -28,21 +27,15 @@ except ImportError:
 
 from proton import xmlutils, utils
 
-try:
-    from lxml import etree
-    lxml_loaded = True
-except ImportError:
-    print("WARNING: lxml is not available, performance will be affected")
-    from xml.etree import ElementTree as etree
-    etree._ElementInterface.getparent = xmlutils.getparent
-    __fromstring = etree.fromstring
-    
-    def fromstring(s):
-        et = __fromstring(s)
-        xmlutils.loadparents(et, None)
-        return et
-    etree.fromstring = fromstring
-    lxml_loaded = False
+from xml.etree import ElementTree as etree
+etree._ElementInterface.getparent = xmlutils.getparent
+__fromstring = etree.fromstring
+
+def fromstring(s):
+    et = __fromstring(s)
+    xmlutils.loadparents(et, None)
+    return et
+etree.fromstring = fromstring
 
 
 #
@@ -154,9 +147,6 @@ class EternalIterator(object):
     def pop(self):
         return self.value
 
-    def __str__(self):
-        return str(self.value)
-
 class ValueMap(object):
     def __init__(self):
         self.valmap = { }
@@ -200,9 +190,6 @@ class ValueMap(object):
         
     def keys(self):
         return self.valmap.keys()
-
-    def __str__(self):
-        return str(self.valmap)
 
 
 class AttributeMap(object):
@@ -263,7 +250,7 @@ class Template(object):
         else:
             path = filename
             
-        if lxml_loaded or path not in Template.elementtrees:
+        if path not in Template.elementtrees:
             #parser = ElementTree.XMLTreeBuilder()
             #parser.entity.update(Template.entities)
             xml = open(path).read()
@@ -274,11 +261,9 @@ class Template(object):
                 self.doctype = '%s\n' % mat.group(1)
 
             et = etree.fromstring(xml.encode())
-            if not lxml_loaded:
-                Template.elementtrees[path] = et
-            return et
-
-        return copy.deepcopy(Template.elementtrees[path])
+            Template.elementtrees[path] = et
+            
+        return copy.deepcopy(Template.elementtrees[path])    
 
     def append(self, eid, xml, index = 0):
         self.setelement(eid, Append(xml), index)
@@ -337,7 +322,7 @@ class Template(object):
             elemname = ''.join([eid, ':', name])
             self.setelement(elemname, prop.fget(value), index)
             self.setattribute(eid, name, prop.fget(value), index)
-        
+
     def __iterate(self, elem, write = True):
         if 'rid' in elem.attrib:
             rid = elem.attrib.pop('rid')
@@ -351,8 +336,7 @@ class Template(object):
                         for c in range(0, cmax):
                             newelems.append(copy.deepcopy(elem))
                         for e in newelems:
-                            elem.getparent().insert(idx, e)
-                        self.__iterate(elem.getparent(), False)
+                            self.__iterate(e)
                     else:
                         elem2 = copy.deepcopy(elem)
                         for c in range(0, cmax):
@@ -361,7 +345,7 @@ class Template(object):
                             if c < cmax:
                                 elem2 = copy.deepcopy(elem2)
                         self.__processchildren(elem)
-                    return
+                        return
             # special case -- with repeated elements, either you want to repeat them
             # or get rid of them...
             elif rid in self.eid_map and isinstance(self.eid_map.peek(rid), Hide):
@@ -370,7 +354,7 @@ class Template(object):
         if self.translate and elem.text and utils.clean(elem.text) != '' \
                 and elem.tag in self.translated_elements:
             elem.text = self.translate(elem.text)
-
+                    
         if 'eid' in elem.attrib:
             eid = elem.attrib.pop('eid')
             if eid in self.template_map:
@@ -392,8 +376,7 @@ class Template(object):
                     else:
                         elem.text = val
                     if ELEM_RE.search(elem.text) >= 0:
-                        xmlutils.parseelement(elem)
-
+                        xmlutils.parseelement(elem) 
                     elem.text = elem.text.replace('&lt;', '<').replace('&gt;', '>')
                 except:
                     pass

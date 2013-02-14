@@ -31,3 +31,14 @@ def join(path1, path2):
         return ''.join([path1, path2])
     else:
         return ''.join([path1, '/', path2])
+
+
+def split_name(name):
+    '''
+
+    '''
+    if name[0] == "{":
+        uri, tag = name[1:].split("}")
+        return uri, tag
+    else:
+        return None, name
