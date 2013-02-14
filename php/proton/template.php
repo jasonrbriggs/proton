@@ -10,50 +10,99 @@ class KeyVal {
 
 class Template {
     var $eid = array();
+    
     var $rid = array();
     var $aid = array();
     
-    var $chardata = null;
+    var $no_content_names = array();
+    var $current_parent;
     
     function Template($filename) {
-        $this->parser = xml_parser_create();
-        
-        xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, 0);
-
-        //Specify element handler
-        xml_set_element_handler($this->parser, array(&$this, "start"), array(&$this, "stop"));
-
-        //Specify data handler
-        xml_set_character_data_handler($this->parser, array(&$this, "char"));
-
-        //Open XML file
-        $this->fp = fopen($filename, "r");
+        $this->dom = new DOMDocument();
+        $this->dom->load($filename);
+        $this->doc = $this->dom->documentElement;
     }
     
-    private function start($parser, $element_name, $element_attrs) {
-        echo '<' , $element_name;
+    function set_no_content_names($no_content_names) {
+        $this->no_content_names = $no_content_names;
+    }
+    
+    function set_element($name, $value, $index = 0) {
+        if (!is_numeric($index) && $index == '*') {
+            $this->eid[$name] = $value;
+        }
+        else {
+            if (!array_key_exists($name, $this->eid)) {
+                $this->eid[$name] = array();
+            }
+            $this->eid[$name][$index] = $value;
+        }
+    }
+    
+    function set_attribute($name, $attr_name, $attr_value, $index = 0) {
+        if (!is_numeric($index) && $index == '*') {
+            $this->aid[$name] = new KeyVal($attr_name, $attr_value);
+        }
+        else {
+            if (!array_key_exists($name, $this->aid)) {
+                $this->aid[$name] = array();
+            }
+            $this->aid[$name][$index] = new KeyVal($attr_name, $attr_value);
+        }
+    }
+    
+    function repeat($name, $count, $index = 0) {
+        if (!is_numeric($index) && $index == '*') {
+            $this->rid[$name] = $count;
+        }
+        else {
+            if (!array_key_exists($name, $this->rid)) {
+                $this->rid[$name] = array();
+            }
+            $this->rid[$name][$index] = $count;
+        }
+    }
+    
+    function hide($name, $index = 0) {
+        $this->set_element($name, '@@@@@HIDE@@@@@', $index);
+    }
+    
+    private function parse($node) {
+        if ($node->nodeType == XML_TEXT_NODE) {
+            echo $node->nodeValue;
+            return;
+        }
         
+        $close = true;
         $attrs = array();
-        if (count($element_attrs) > 0) {
-            foreach ($element_attrs as $key => $value) {
-                if ($key == 'eid') {
-                    $this->process_eid($value);
+        $content = null;
+
+        if ($node->hasAttributes()) {
+            foreach ($node->attributes as $attr) { 
+                if ($attr->name == 'eid') {
+                    $content = $this->process_eid($attr->value);
+                    if ($content == '@@@@@HIDE@@@@@') {
+                        $node->parentNode->removeChild($node);
+                        return;
+                    }
                     continue;
                 }
-                else if ($key == 'aid') {
-                    $this->process_aid($value, &$attrs);
+                else if ($attr->name == 'aid') {
+                    $this->process_aid($attr->value, &$attrs);
                     continue;
                 }
-                else if ($key == 'rid') {
-                    $this->process_rid($value);
+                else if ($attr->name == 'rid') {
+                    $this->process_rid($attr->value, &$node);
                     continue;
                 }
                 
-                if (!array_key_exists($key, $attrs)) {
-                    $attrs[$key] = $value;
+                if (!array_key_exists($attr->name, $attrs)) {
+                    $attrs[$attr->name] = $attr->value;
                 }
             }
         }
+        
+        echo '<' , $node->tagName;
         
         if (count($attrs) > 0) {
             foreach ($attrs as $key => $val) {
@@ -61,33 +110,42 @@ class Template {
             }
         }
         
-        echo '>';
-    }
-
-    private function stop($parser, $element_name) {
-        echo '</' , $element_name , '>';
-    }
-
-    private function char($parser, $data) {
-        if ($this->chardata != null) {
-            echo $this->chardata;
-            $this->chardata = null;
+        if ($content == null && !$node->hasChildNodes() && in_array($node->tagName, $this->no_content_names)) {
+            echo ' />';
+            $close = false;
         }
         else {
-            echo $data;
+            echo '>';
+        }
+        
+        if ($content != null) {
+            echo $content;
+        }
+        else if ($node->hasChildNodes()) {
+            $children = $node->childNodes; 
+            for ($i=0; $i < $children->length; $i++) { 
+                $child = $children->item($i);
+                $this->parse($child);
+            }
+        }
+        
+        if ($close) {
+            echo '</' , $node->tagName , '>';    
         }
     }
     
     private function process_eid($value) {
         if (array_key_exists($value, $this->eid)) {
             if (is_array($this->eid[$value])) {
-                $this->chardata = current($this->eid[$value]);
+                $rtn = current($this->eid[$value]);
                 next($this->eid[$value]);
             }
             else {
-                $this->chardata = $this->eid[$value];
+                $rtn = $this->eid[$value];
             }
+            return $rtn;
         }
+        return null;
     }
     
     private function process_aid($value, $attrs) {
@@ -99,12 +157,12 @@ class Template {
             else {
                 $keyval = $this->aid[$value];
             }
-            
+
             $attrs[$keyval->key] = $keyval->val;
         }
     }
     
-    private function process_rid($value) {
+    private function process_rid($value, $node) {
         if (array_key_exists($value, $this->rid)) {
             if (is_array($this->rid[$value])) {
                 $count = current($this->rid[$value]);
@@ -114,47 +172,27 @@ class Template {
                 $count = $this->rid[$value];
             }
             
-        }
-    }
-    
-    function set_element($name, $value, $index = 0) {
-        if ($index == '*') {
-            $this->eid[$name] = $value;
-        }
-        else {
-            if (!array_key_exists($name, $this->eid)) {
-                $this->eid[$name] = array_fill(0, $index, null);
+            $parent = $node->parentNode;
+            $children = array();
+            for ($i = 0; $i < $count-1; $i++) {
+                $child = $node->cloneNode(true);
+                $child->removeAttribute('rid');
+                $children[] = $child;
             }
-            $this->eid[$name][$index] = $value;
-        }
-    }
-    
-    function set_attribute($name, $attr_name, $attr_value, $index = 0) {
-        if ($index == '*') {
-            $this->aid[$name] = new KeyVal($attr_name, $attr_value);
-        }
-        else {
-            if (!array_key_exists($name, $this->aid)) {
-                $this->aid[$name] = array_fill(0, $index, null);
+            
+            foreach ($children as $child) {
+                $parent->appendChild($child);
             }
-            $this->eid[$name][$index] = new KeyVal($attr_name, $attr_value);
         }
     }
     
     function __toString() {
         ob_start();
-        while ($data = fread($this->fp, 4096)) {
-            xml_parse($this->parser, $data, feof($this->fp)) or 
-                die (sprintf("XML Error: %s at line %d", 
-                xml_error_string(xml_get_error_code($parser)),
-                xml_get_current_line_number($parser)));
-        }
-
+        
+        $this->parse($this->doc);
+    
         $rtn = ob_get_contents();
         ob_end_clean();
-
-        // Free the XML parser
-        xml_parser_free($this->parser);
     
         return $rtn;
     }

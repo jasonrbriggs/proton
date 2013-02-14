@@ -3,6 +3,7 @@
 include_once('proton/template.php');
 
 $t = new Template('../python/test/basic.xhtml');
+$t->set_no_content_names(array('br', 'hr', 'img', 'input'));
 
 $t->set_element('title', 'An Xhtml Page', '*');
 $t->set_element('content', 'Content goes here');
