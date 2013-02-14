@@ -1,0 +1,2 @@
+include test/*.xhtml
+include test/*.xml
