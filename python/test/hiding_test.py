@@ -15,16 +15,17 @@
 
 import unittest
 from xml.etree import ElementTree as etree
-from proton.template import Templates
+import os
+from proton import template
 
 class TestHidingFunctionality(unittest.TestCase):
 
     def setUp(self):
-        self.templates = Templates()
+        template.base_dir = os.path.dirname(os.path.realpath(__file__))
 
-    def testhiding(self):
-        tmp = self.templates['test/hiding.xhtml']
-        tmp.setelement('title', 'Hiding Xhtml Page', '*')
+    def test_hiding(self):
+        tmp = template.get_template('hiding.xhtml')
+        tmp.set_value('title', 'Hiding Xhtml Page', '*')
         tmp.hide('hidden-element')
 
         out = str(tmp)
@@ -33,9 +34,9 @@ class TestHidingFunctionality(unittest.TestCase):
 
         self.assert_(et.find('body/div') == None, 'div should have been removed')
         
-    def testhiding2(self):
-        tmp = self.templates['test/hiding2.xhtml']
-        tmp.setelement('title', 'Navigation Example', '*')
+    def test_hiding2(self):
+        tmp = template.get_template('hiding2.xhtml')
+        tmp.set_value('title', 'Navigation Example', '*')
         tmp.hide('autopayments')
         tmp.hide('exchange')
         tmp.hide('transactions')
@@ -49,4 +50,4 @@ class TestHidingFunctionality(unittest.TestCase):
         self.assert_(anchors[0].attrib['href'] == '/accounts')
         self.assert_(anchors[1].attrib['href'] == '/transfer')
         self.assert_(anchors[2].attrib['href'] == '/bills')
-        
+

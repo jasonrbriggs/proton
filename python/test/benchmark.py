@@ -4,7 +4,8 @@ import sys
 import time
 import unittest
 
-from proton.template import Templates
+import os
+from proton import template
 
 class ListItem(object):
     def __init__(self):
@@ -31,42 +32,40 @@ for x in range(0, len(lines)):
     d.id = x + 1
     d.clazz = x % 2 == 1 and 'odd' or 'even'
 
-templates = Templates()
-
 def run(times):
     ## call benchmark function
     for x in range(0, times):
-        tmp = templates['test/benchmark.xhtml']
+        tmp = template.get_template('benchmark.xhtml')
         tmp.repeat('data', len(data))
         for y in range(0, len(data)):
             d = data[y]
-            tmp.setattribute('clazz', 'class', d.clazz, y)
-            tmp.setelement('id', str(d.id), y)
-            tmp.setattribute('symbol', 'href', '/stock/%s' % d.symbol, y)
-            tmp.setelement('symbol', d.symbol, y)
-            tmp.setattribute('url', 'href', d.url, y)
-            tmp.setelement('name', d.name, y)
-            tmp.setelement('price', d.price, y)
+            tmp.set_attribute('clazz', 'class', d.clazz, y)
+            tmp.set_value('id', str(d.id), y)
+            tmp.set_attribute('symbol', 'href', '/stock/%s' % d.symbol, y)
+            tmp.set_value('symbol', d.symbol, y)
+            tmp.set_attribute('url', 'href', d.url, y)
+            tmp.set_value('name', d.name, y)
+            tmp.set_value('price', d.price, y)
             if float(d.change) < 0:
                 tmp.hide('azchange', y)
                 tmp.hide('azratio', y)
-                tmp.setelement('bzchange', d.change, y)
-                tmp.setelement('bzratio', d.ratio, y)
+                tmp.set_value('bzchange', d.change, y)
+                tmp.set_value('bzratio', d.ratio, y)
             else:
                 tmp.hide('bzchange', y)
                 tmp.hide('bzratio', y)
-                tmp.setelement('azchange', d.change, y)
-                tmp.setelement('azratio', d.ratio, y)
+                tmp.set_value('azchange', d.change, y)
+                tmp.set_value('azratio', d.ratio, y)
         str(tmp)
 
 
 class TestPerformance(unittest.TestCase):
 
     def setUp(self):
-        self.templates = Templates()
+        template.base_dir = os.path.dirname(os.path.realpath(__file__))
 
     def testperf(self):
-        times = 10000
+        times = 1000
 
         ## start time
         start_t = time.time()

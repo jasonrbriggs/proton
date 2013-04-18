@@ -15,8 +15,8 @@
 
 import unittest
 from xml.etree import ElementTree as etree
-from proton.template import Templates
-
+import os
+from proton import template
 
 class Ref(object):
     def __init__(self, href, text):
@@ -57,31 +57,39 @@ class Post(object):
 class TestBlogExample(unittest.TestCase):
 
     def setUp(self):
-        self.templates = Templates()
+        template.base_dir = os.path.dirname(os.path.realpath(__file__))
 
-    def getmenu(self):
+    def get_menu(self):
         return [
             Ref('/home', 'Home'),
             Ref('/about', 'About'),
             Ref('/admin', 'Admin')
         ]
         
-    def getblogroll(self):
+    def get_blogroll(self):
         return [
             Ref('http://www.someblog.com', 'Some blog'),
             Ref('http://www.anotherblog.com', 'Another blog')
         ]
 
-    def testblogrender(self):
-        tmp = self.templates['test/blogexample.xhtml']
+    def test_blogrender(self):
+        tmp = template.get_template('blogexample.xhtml')
         
-        tmp.setelement('title', 'My Test Blog')
-        tmp.setelement('menu', self.getmenu())
-        tmp.setelement('blogroll', self.getblogroll())
+        tmp.set_value('title', 'My Test Blog')
+
+        menu = self.get_menu()
+        tmp.repeat('menu', len(menu))
+        for x in range(0, len(menu)):
+            tmp.set_properties('menu', menu[x], x)
+
+        blogroll = self.get_blogroll()
+        tmp.repeat('blogroll', len(blogroll))
+        for x in range(0, len(blogroll)):
+            tmp.set_properties('blogroll', blogroll[x], x)
         
         post = Post('My First Post', 'joe@bloggs.com', '10-Jan-2009 21:47pm', 'This is my first post...\n...and what a great post it is.')
         
-        tmp.setelement('post', post)
+        tmp.set_properties('post', post)
         
         out = str(tmp)
         print(out)

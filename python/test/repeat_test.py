@@ -18,24 +18,25 @@ sys.path.append('..')
 
 import unittest
 from xml.etree import ElementTree as etree
-from proton.template import Templates
+import os
+from proton import template
 
 
 class TestRepeatingFunctionality(unittest.TestCase):
 
     def setUp(self):
-        self.templates = Templates()
+        template.base_dir = os.path.dirname(os.path.realpath(__file__))
 
     def test_repeat(self):
-        tmp = self.templates['test/repeat.xhtml']
+        tmp = template.get_template('repeat.xhtml')
 
-        tmp.setelement('title', 'Repeating Xhtml Page', '*')
-        tmp.setelement('link', 'This is a link to Google')
-        tmp.setattribute('link', 'href', 'http://www.google.com')
+        tmp.set_value('title', 'Repeating Xhtml Page', '*')
+        tmp.set_value('link', 'This is a link to Google')
+        tmp.set_attribute('link', 'href', 'http://www.google.com')
         
         tmp.repeat('list-item', 5)
         for x in range(0, 5):
-            tmp.setelement('list-item', 'test%s' % x, x)
+            tmp.set_value('list-item', 'test%s' % x, x)
 
         out = str(tmp)
         print(out)
@@ -47,7 +48,7 @@ class TestRepeatingFunctionality(unittest.TestCase):
             self.assert_(li[x].text == 'test%s' % x, 'expecting test%s, actual %s' % (x, li[x].text))
 
     def test_repeat2(self):
-        tmp = self.templates['test/repeat2.xhtml']
+        tmp = template.get_template('repeat2.xhtml')
 
         tmp.repeat('posts', 5)
 
@@ -57,6 +58,20 @@ class TestRepeatingFunctionality(unittest.TestCase):
         et = etree.fromstring(out)
         li = et.findall("*//div[@class='contentcontainer']")
         self.assert_(len(li) == 5, 'expecting 5 content divs, actual %s' % len(li))
+
+        li = et.findall("*//div[@id='menucontainer']")
+        self.assert_(len(li) == 1, 'expecting 1 menu divs, actual %s' % len(li))
+
+    def test_repeat3(self):
+        tmp = template.get_template('repeat2.xhtml')
+
+        tmp.repeat('posts', 50)
+
+        out = str(tmp)
+
+        et = etree.fromstring(out)
+        li = et.findall("*//div[@class='contentcontainer']")
+        self.assert_(len(li) == 50, 'expecting 50 content divs, actual %s' % len(li))
 
         li = et.findall("*//div[@id='menucontainer']")
         self.assert_(len(li) == 1, 'expecting 1 menu divs, actual %s' % len(li))

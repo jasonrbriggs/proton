@@ -15,25 +15,26 @@
 
 import unittest
 from xml.etree import ElementTree as etree
-from proton.template import Templates
+import os
+from proton import template
 
 
 class TestTwoTemplatesFunctionality(unittest.TestCase):
 
     def setUp(self):
-        self.templates = Templates()
+        template.base_dir = os.path.dirname(os.path.realpath(__file__))
 
     def applydata(self, tmp):
         tmp.repeat('list', 2)
         items = [ 'A', 'B' ]
         for x in range(0, 2):
             y = x + 1
-            tmp.setelement('listid', str(y), x)
-            tmp.setattribute('listid', 'id', str(y), x)
-            tmp.setelement('listval', 'my item %s' % items[x], x)
+            tmp.set_value('listid', str(y), x)
+            tmp.set_attribute('listid', 'id', str(y), x)
+            tmp.set_value('listval', 'my item %s' % items[x], x)
 
-    def testrepeat(self):
-        tmp1 = self.templates['test/twotemplates.xhtml']
+    def test_two_templates(self):
+        tmp1 = template.get_template('twotemplates.xhtml')
         self.applydata(tmp1)
         print("\nXHTML:\n%s" % str(tmp1))
 
@@ -44,14 +45,14 @@ class TestTwoTemplatesFunctionality(unittest.TestCase):
         self.assert_(td[5].text == '2')
         self.assert_(td[7].text == 'my item B')
 
-        tmp2 = self.templates['test/twotemplates.xml']
+        tmp2 = template.get_template('twotemplates.xml')
         self.applydata(tmp2)
         print("\nXML:\n%s\n" % str(tmp2))
         
         et = etree.fromstring(str(tmp2))
         item = et.findall('item')
         self.assert_(item[0].attrib['id'] == '1')
-        self.assert_(item[0].text == 'my item 1')
+        self.assert_(item[0].text == 'my item A')
         self.assert_(item[1].attrib['id'] == '2')
-        self.assert_(item[1].text == 'my item 2')
+        self.assert_(item[1].text == 'my item B')
     

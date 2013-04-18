@@ -15,7 +15,8 @@
 
 import unittest
 from xml.etree import ElementTree as etree
-from proton.template import Templates
+import os
+from proton import template
 
 fr = {
     'Page Title' : 'Titre de la page',
@@ -32,11 +33,11 @@ def translate(text):
 class TestI18NFunctionality(unittest.TestCase):
 
     def setUp(self):
-        self.templates = Templates()
+        template.base_dir = os.path.dirname(os.path.realpath(__file__))
 
-    def testtranslation(self):
-        tmp = self.templates['test/i18n.xhtml']
-        tmp.translate = translate
+    def test_translation(self):
+        tmp = template.get_template('i18n.xhtml')
+        tmp.translator = translate
         
         out = str(tmp)
         print(out)
