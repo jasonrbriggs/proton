@@ -17,6 +17,7 @@ from distutils.core import setup, Command
 import proton
 import unittest
 
+
 class TestCommand(Command):
     user_options = [ ('test=', 't', 'specific test to run') ]
 
@@ -45,7 +46,7 @@ setup(
     url = 'http://code.google.com/p/proton-te/',
     author = 'Jason R Briggs',
     author_email =  'jasonrbriggs@gmail.com',
-    platforms = ['any'],
+    platforms = ['3.0', '3.1', '3.2', '3.3'],
     packages = ['proton', 'test'],
-    cmdclass = { 'test' : TestCommand }
+    cmdclass = {'test': TestCommand}
 )

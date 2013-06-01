@@ -205,6 +205,18 @@ class Template(object):
             else:
                 lst.append(elem)
 
+    def append(self, eid, content, idx='*'):
+        if eid in self.__element_ids:
+            elems = self.__element_ids[eid]
+            if idx == '*':
+                for elem in elems:
+                    self.__append(elem, content)
+            elif idx < len(elems):
+                self.__append(elems[idx], content)
+
+    def __append(self, elem, content):
+        elem.parse(content, self)
+
     def set_value(self, eid, val, idx='*'):
         """
         Set the content of an xml element marked with the matching eid attribute.

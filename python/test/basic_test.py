@@ -127,3 +127,27 @@ class TestBasicFunctionality(unittest.TestCase):
         dd = et.findall('body/dl/dd')
         self.assert_(dd[0].text == '100')
         self.assert_(dd[1].text == '500')
+
+    def test_basic_append(self):
+        tmp = template.get_template('basic-append.xhtml')
+
+        tmp.set_value('title', 'Append Title')
+        tmp.set_value('content', 'Append Content')
+
+        tmp.append('head', '<meta name="description" content="append description" />')
+        tmp.append('content', '<p>some additional content</p>')
+
+        out = str(tmp)
+        print(out)
+
+        et = etree.fromstring(out)
+        title = et.findall('head/title')
+        self.assert_(title[0].text == 'Append Title')
+        meta = et.findall('head/meta')
+        self.assert_(meta[0].attrib['name'] == 'description')
+        self.assert_(meta[0].attrib['content'] == 'append description')
+
+        content = et.findall('body/div')
+        self.assert_(content[0].text == 'Append Content')
+        appended_content = et.findall('body/div/p')
+        self.assert_(appended_content[0].text == 'some additional content')
