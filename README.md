@@ -5,20 +5,20 @@ Proton is a simple, "code-less" engine for xml/xhtml templates. Code-less, becau
 
 A simple Proton template looks like this:
 
-    &lt;html&gt;
-        &lt;head&gt;
-            &lt;title eid="title"&gt;PAGE TITLE&lt;/title&gt;
-        &lt;/head&gt;
-        &lt;body&gt;
-            &lt;h1 eid="title"&gt;PAGE TITLE&lt;/h1&gt;
+    <html>
+        <head>
+            <title eid="title">PAGE TITLE</title>
+        </head>
+        <body>
+            <h1 eid="title">PAGE TITLE</h1>
 
-            &lt;p&gt;&lt;a eid="link" aid="link" href=""&gt;LINK ITEM&lt;/a&gt;&lt;/p&gt;
+            <p><a eid="link" aid="link" href="">LINK ITEM</a></p>
 
-            &lt;ul&gt;
-                &lt;li rid="list-item" eid="list-item"&gt;LIST ITEMS&lt;/li&gt;
-            &lt;/ul&gt;
-        &lt;/body&gt;
-    &lt;/html&gt;
+            <ul>
+                <li rid="list-item" eid="list-item">LIST ITEMS</li>
+            </ul>
+        </body>
+    </html>
 
 And to render this template, you might do something like this:
 
