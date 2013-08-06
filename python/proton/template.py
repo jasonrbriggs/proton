@@ -321,23 +321,28 @@ class Template(object):
         """
         if eid in self.__element_ids:
             elems = self.__element_ids[eid]
-            if index < len(elems):
-                elem = elems[index]
-                current_pos = elem.parent.children.index(elem)
-                elem.parent.children.remove(elem)
-                replacement_type = type(replacement)
-                if replacement_type in (Element, TextElement):
-                    self.check_element(replacement, True)
-                    elem.parent.children.insert(current_pos, replacement)
-                elif replacement_type == Template:
-                    for child in replacement.root.children:
-                        elem.parent.children.insert(current_pos, child)
-                        current_pos += 1
-                    self.__merge_ids(self.__element_ids, replacement.__element_ids)
-                    self.__merge_ids(self.__attrib_ids, replacement.__attrib_ids)
-                    self.__merge_ids(self.__repeat_ids, replacement.__repeat_ids)
-                else:
-                    elem.parent.children.insert(current_pos, TextElement(replacement))
+        elif eid in self.__repeat_ids:
+            elems = self.__repeat_ids[eid]
+        else:
+            return
+
+        if index < len(elems):
+            elem = elems[index]
+            current_pos = elem.parent.children.index(elem)
+            elem.parent.children.remove(elem)
+            replacement_type = type(replacement)
+            if replacement_type in (Element, TextElement):
+                self.check_element(replacement, True)
+                elem.parent.children.insert(current_pos, replacement)
+            elif replacement_type == Template:
+                for child in replacement.root.children:
+                    elem.parent.children.insert(current_pos, child)
+                    current_pos += 1
+                self.__merge_ids(self.__element_ids, replacement.__element_ids)
+                self.__merge_ids(self.__attrib_ids, replacement.__attrib_ids)
+                self.__merge_ids(self.__repeat_ids, replacement.__repeat_ids)
+            else:
+                elem.parent.children.insert(current_pos, TextElement(replacement))
 
     def __merge_ids(self, self_ids, ids):
         for key, val in ids.items():

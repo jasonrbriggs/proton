@@ -151,3 +151,24 @@ class TestBasicFunctionality(unittest.TestCase):
         self.assert_(content[0].text == 'Append Content')
         appended_content = et.findall('body/div/p')
         self.assert_(appended_content[0].text == 'some additional content')
+
+    def test_basic_nonexistent_eid(self):
+        tmp = template.get_template('basic.xhtml')
+
+        tmp.set_value('nonexistent', 'test')
+
+        out = str(tmp)
+
+    def test_basic_nonexistent_aid(self):
+        tmp = template.get_template('basic.xhtml')
+
+        tmp.set_attribute('nonexistent', 'href', 'test')
+
+        out = str(tmp)
+
+    def test_basic_nonexistent_rid(self):
+        tmp = template.get_template('basic.xhtml')
+
+        tmp.repeat('nonexistent', 10)
+
+        out = str(tmp)
