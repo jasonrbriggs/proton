@@ -6,4 +6,5 @@ import TestXml
 import TestTemplate
 
 main = do
-    runTestTT TestXml.tests
+    runTestTT TestXml.xml_tests
+    runTestTT TestTemplate.template_tests

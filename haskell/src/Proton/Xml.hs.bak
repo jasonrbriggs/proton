@@ -1,11 +1,9 @@
 module Proton.Xml (
 Element(..),
 Attribute(..),
-ElementType(..),
 RenderCallbackFn(..),
 findAttributeValue,
 getAttributes,
-getChildren,
 parseXmlFile,
 render,
 render'
@@ -19,13 +17,11 @@ import Text.Regex
 data Attribute = Attribute { attname :: String, attvalue :: String }
                  deriving (Show)
 
-data ElementType = Root
-                 | Raw
-                 | Open
-                 | Closed
-                 deriving (Show)
 
-data Element = Element ElementType String [Attribute] [Element]
+data Element = Root [Element]
+             | RawElement String
+             | Element String [Attribute] [Element]
+             | ClosedElement String [Attribute]
                deriving (Show)
 
 
@@ -85,11 +81,14 @@ findAttributeValue name (x:xs) = do
 
 
 getChildren :: Element -> [Element]
-getChildren (Element elemtype s atts xs) = xs
+getChildren (Element s atts xs) = xs
+getChildren _ = []
 
 
 getAttributes :: Element -> [Attribute]
-getAttributes (Element elemtype s atts xs) = atts
+getAttributes (Element s atts xs) = atts
+getAttributes (ClosedElement s atts) = atts
+getAttributes _ = []
 
 
 -- todo: fix escaped double quote in attr value
@@ -124,25 +123,25 @@ parse (x:xs) = do
     case (first, sec, seclst, lst) of
         ('<', '?', _, _)   -> do
             let (parsed, remaining) = parse xs
-            ([Element Raw x [] []] ++ parsed, remaining)
+            ([RawElement x] ++ parsed, remaining)
         ('<', '!', _, _)   -> do
             let (parsed, remaining) = parse xs
-            ([Element Raw x [] []] ++ parsed, remaining)
+            ([RawElement x] ++ parsed, remaining)
         ('<', _, '/', '>') -> do
             let (tag, tagcontent) = parseTag x
             let attributes = parseAttributes tagcontent
             let (parsed, remaining) = parse xs
-            ([Element Closed tag attributes []] ++ parsed, remaining)
+            ([ClosedElement tag attributes] ++ parsed, remaining)
         ('<', '/', _, '>') -> ([], xs)
         ('<', _, _, '>')   -> do
             let (tag, tagcontent) = parseTag x
             let attributes = parseAttributes tagcontent
             let (children, siblings) = parse xs
             let (parsed, remaining) = parse siblings
-            ([Element Open tag attributes children] ++ parsed, remaining)
+            ([Element tag attributes children] ++ parsed, remaining)
         (_, _, _, _)       -> do
             let (parsed, remaining) = parse xs
-            ([Element Raw x [] []] ++ parsed, remaining)
+            ([RawElement x] ++ parsed, remaining)
 
 
 parseXmlFile :: String -> IO Element
@@ -150,7 +149,7 @@ parseXmlFile fname = do
    file <- readFile fname
    let sp = splitText file
    let (parsed, _) = parse sp
-   return (Element Root "" [] parsed)
+   return (Root (parsed))
 
 
 getData (RenderCallbackFn a b) = do
@@ -166,20 +165,22 @@ renderNoop (s, atts, xs) = RenderCallbackFn (s, atts, xs) renderNoop
 
 
 render :: Element -> String
-render el = render' el renderNoop
+render (RawElement s) = s
+render (ClosedElement s atts) = renderClosed s atts renderNoop
+render (Root xs) = renderList xs renderNoop
+render (Element s atts xs) = renderOpen s atts xs renderNoop
 
 
-render' (Element elemtype s atts xs) fn = do
-    case elemtype of
-        (Raw) -> s
-        (Closed) -> renderClosed s atts fn
-        (Open) -> renderOpen s atts xs fn
-        (Root) -> renderList xs fn
+--render' :: Element -> (String -> [Attribute] -> [Element] -> (String, [Attribute], [Element])) -> String
+render' (RawElement s) fn = s
+render' (ClosedElement s atts) fn = renderClosed s atts fn
+render' (Root xs) fn = renderList xs fn
+render' (Element s atts xs) fn = renderOpen s atts xs fn
 
 
 --renderClosed :: RenderCallbackFn a b -> String
 renderClosed s atts fn = do
-    let fnres = fn (s, atts, [(Element Raw "" [] [])])
+    let fnres = fn (s, atts, [(RawElement "")])
     let (newtag, newatts, _) = getData fnres
     "<" ++ newtag ++ (renderAttributeList newatts) ++ " />"
 
@@ -201,7 +202,6 @@ renderList (x:xs) fn = do
 
 renderAttribute :: Attribute -> String
 renderAttribute (Attribute name val) = " " ++ name ++ "=\"" ++ val ++ "\""
-
 
 renderAttributeList :: [Attribute] -> String
 renderAttributeList [] = ""
