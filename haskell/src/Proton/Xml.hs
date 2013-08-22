@@ -3,7 +3,7 @@ Element(..),
 Attribute(..),
 ElementType(..),
 RenderCallbackFn(..),
-findAttributeValue,
+findAttribute,
 getAttributes,
 getChildren,
 parseXmlFile,
@@ -14,9 +14,10 @@ render'
 import Data.String.Utils
 import Data.List (intercalate)
 import Text.Regex
+import qualified Data.Map as Map
 
 
-data Attribute = Attribute { attname :: String, attvalue :: String }
+data Attribute = Attribute { attname :: String, attvalue :: String, occurrence :: Int }
                  deriving (Show)
 
 data ElementType = Root
@@ -27,7 +28,6 @@ data ElementType = Root
 
 data Element = Element ElementType String [Attribute] [Element]
                deriving (Show)
-
 
 data RenderCallbackFn a b = RenderCallbackFn a (b -> RenderCallbackFn a b)
 
@@ -75,13 +75,12 @@ splitText (x:xs) =
             [x : first] ++ splitText rest
 
 
-findAttributeValue :: String -> [Attribute] -> Maybe String
-findAttributeValue name [] = Nothing
-findAttributeValue name (x:xs) = do
+findAttribute :: String -> [Attribute] -> Maybe Attribute
+findAttribute name [] = Nothing
+findAttribute name (x:xs) = do
     let aname = attname x
-    let avalue = attvalue x
-    if aname == name then Just avalue
-    else findAttributeValue name xs
+    if aname == name then Just x
+    else findAttribute name xs
 
 
 getChildren :: Element -> [Element]
@@ -93,16 +92,20 @@ getAttributes (Element elemtype s atts xs) = atts
 
 
 -- todo: fix escaped double quote in attr value
-parseAttributes      :: String -> [Attribute]
-parseAttributes ""   = []
-parseAttributes ">"  = []
-parseAttributes " />" = []
-parseAttributes "/>" = []
-parseAttributes s    = do
+parseAttributes          :: String -> Map.Map String Int -> ([Attribute], Map.Map String Int)
+parseAttributes "" dm    = ([], dm)
+parseAttributes ">" dm   = ([], dm)
+parseAttributes " />" dm = ([], dm)
+parseAttributes "/>" dm  = ([], dm)
+parseAttributes s dm     = do
     let news = dropWhile (matches [' ', '"']) s
     let (name, maybeValue) = splitOn '=' news
     let (value, rest) = span (not . matches ['"']) $ dropWhile (matches ['=', '"', '>']) maybeValue
-    [Attribute name value] ++ if rest /= "" then parseAttributes (tail rest) else []
+    let key = name ++ "=" ++ value
+    let count = Map.findWithDefault 0 key dm
+    let newdm = Map.insert key (count+1) dm
+    let (newatts, finaldm) = if rest /= "" then parseAttributes (tail rest) newdm else ([], newdm)
+    ([Attribute name value (count+1)] ++ newatts, finaldm)
 
 
 -- return the tag name, and then the remaining content of the element
@@ -113,9 +116,9 @@ parseTag s = do
 
 
 -- internal xml parser code
-parse :: [String] -> ([Element], [String])
-parse [] = ([], [])
-parse (x:xs) = do
+parse :: [String] -> Map.Map String Int -> ([Element], [String], Map.Map String Int)
+parse [] dm = ([], [], dm)
+parse (x:xs) dm = do
     let first = head x
     let sec = head (tail x)
     let seclst = last (init x)
@@ -123,33 +126,33 @@ parse (x:xs) = do
     
     case (first, sec, seclst, lst) of
         ('<', '?', _, _)   -> do
-            let (parsed, remaining) = parse xs
-            ([Element Raw x [] []] ++ parsed, remaining)
+            let (parsed, remaining, dm1) = parse xs dm
+            ([Element Raw x [] []] ++ parsed, remaining, dm1)
         ('<', '!', _, _)   -> do
-            let (parsed, remaining) = parse xs
-            ([Element Raw x [] []] ++ parsed, remaining)
+            let (parsed, remaining, dm1) = parse xs dm
+            ([Element Raw x [] []] ++ parsed, remaining, dm1)
         ('<', _, '/', '>') -> do
             let (tag, tagcontent) = parseTag x
-            let attributes = parseAttributes tagcontent
-            let (parsed, remaining) = parse xs
-            ([Element Closed tag attributes []] ++ parsed, remaining)
-        ('<', '/', _, '>') -> ([], xs)
+            let (attributes, dm1) = parseAttributes tagcontent dm
+            let (parsed, remaining, dm2) = parse xs dm1
+            ([Element Closed tag attributes []] ++ parsed, remaining, dm2)
+        ('<', '/', _, '>') -> ([], xs, dm)
         ('<', _, _, '>')   -> do
             let (tag, tagcontent) = parseTag x
-            let attributes = parseAttributes tagcontent
-            let (children, siblings) = parse xs
-            let (parsed, remaining) = parse siblings
-            ([Element Open tag attributes children] ++ parsed, remaining)
+            let (attributes, dm1) = parseAttributes tagcontent dm
+            let (children, siblings, dm2) = parse xs dm1
+            let (parsed, remaining, dm3) = parse siblings dm2
+            ([Element Open tag attributes children] ++ parsed, remaining, dm3)
         (_, _, _, _)       -> do
-            let (parsed, remaining) = parse xs
-            ([Element Raw x [] []] ++ parsed, remaining)
+            let (parsed, remaining, dm1) = parse xs dm
+            ([Element Raw x [] []] ++ parsed, remaining, dm1)
 
 
 parseXmlFile :: String -> IO Element
 parseXmlFile fname = do    
    file <- readFile fname
    let sp = splitText file
-   let (parsed, _) = parse sp
+   let (parsed, _, _) = parse sp Map.empty
    return (Element Root "" [] parsed)
 
 
@@ -200,7 +203,7 @@ renderList (x:xs) fn = do
 
 
 renderAttribute :: Attribute -> String
-renderAttribute (Attribute name val) = " " ++ name ++ "=\"" ++ val ++ "\""
+renderAttribute (Attribute name val occ) = " " ++ name ++ "=\"" ++ val ++ "\""
 
 
 renderAttributeList :: [Attribute] -> String

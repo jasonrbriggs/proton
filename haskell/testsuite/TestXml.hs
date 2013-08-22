@@ -13,10 +13,10 @@ basicParseTest = TestCase (do
     assertEqual "Rendered xml should be the same as source" f s)
 
 findAttributeTest = TestCase (do
-    let atts = [(Attribute "test1" "test2"), (Attribute "test9" "test8")]
-    let val = findAttributeValue "test9" atts
-    case val of
-        Just v -> assertEqual "Attribute value should be 'test9'" "test8" v
+    let atts = [(Attribute "test1" "test2" 1), (Attribute "test9" "test8" 1)]
+    let att = findAttribute "test9" atts
+    case att of
+        Just a -> assertEqual "Attribute value should be 'test8'" "test8" (attvalue a)
         Nothing -> assertFailure "Expecting a value"
     )
 
