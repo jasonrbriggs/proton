@@ -3,6 +3,7 @@ Element(..),
 Attribute(..),
 ElementType(..),
 RenderCallbackFn(..),
+containsAttribute,
 findAttribute,
 getAttributes,
 getChildren,
@@ -18,6 +19,7 @@ import qualified Data.Map as Map
 
 
 data Attribute = Attribute { attname :: String, attvalue :: String, occurrence :: Int }
+               | NoAttribute
                  deriving (Show)
 
 data ElementType = Root
@@ -75,12 +77,20 @@ splitText (x:xs) =
             [x : first] ++ splitText rest
 
 
-findAttribute :: String -> [Attribute] -> Maybe Attribute
-findAttribute name [] = Nothing
+findAttribute :: String -> [Attribute] -> Attribute
+findAttribute name [] = NoAttribute
 findAttribute name (x:xs) = do
     let aname = attname x
-    if aname == name then Just x
+    if aname == name then x
     else findAttribute name xs
+
+
+containsAttribute :: String -> [Attribute] -> Bool
+containsAttribute name [] = False
+containsAttribute name (x:xs) = do
+    let aname = attname x
+    if aname == name then True
+    else containsAttribute name xs
 
 
 getChildren :: Element -> [Element]
