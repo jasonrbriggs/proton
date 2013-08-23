@@ -59,10 +59,22 @@ setElementValue tmp name value pos = do
     return (Template x newdm)
 
 
+setAttributeValue tmp name attname value pos = do
+    let dm = data_map tmp
+    let em = eid_map dm
+    let am = aid_map dm
+    let x = xml tmp
+    let attlist = Map.findWithDefault [] name am
+    let newam = Map.insert name (attlist ++ [DataNameValue attname value pos]) am
+    let newdm = DataMap em newam
+    return (Template x newdm)
+
+
+
 renderReplace dm (s, atts, xs) = do
     let newxs = if containsAttribute "eid" atts then renderReplaceEID dm xs (findAttribute "eid" atts) else xs
     -- todo
-    let newatts = atts
+    let newatts = if containsAttribute "aid" atts then renderReplaceAID dm atts (findAttribute "aid" atts) else atts
     
     RenderCallbackFn (s, newatts, newxs) (renderReplace dm)
 
@@ -80,13 +92,42 @@ renderReplaceEID' attocc xs (e:es) = do
         then [Element Raw (dval e) [] []]
         else renderReplaceEID' attocc xs es
 
+
+renderReplaceAID dm atts aidatt = do
+    let amap = aid_map dm
+    let as = Map.findWithDefault [] (attvalue aidatt) amap
+    renderReplaceAID' (occurrence aidatt) atts as
+
+
+renderReplaceAID' attocc atts [] = atts
+renderReplaceAID' attocc atts (a:as) = do
+    let pos = dnpos a
+    let name = dnname a
+    let value = dnval a
+    if attocc == pos || pos <= 0
+        then replaceAttributeValue name value atts
+        else renderReplaceAID' attocc atts as
+
+
+replaceAttributeValue :: String -> String -> [Attribute] -> [Attribute]
+replaceAttributeValue name newvalue [] = []
+replaceAttributeValue name newvalue (a:as) = do
+    let aname = attname a
+    let aocc = occurrence a
+    if name == aname 
+        then [Attribute name newvalue aocc] ++ as
+        else [a] ++ replaceAttributeValue name newvalue as
+
+
 renderTemplate tmp = do
     let dm = data_map tmp
     let x = xml tmp
     let renderReplaceInternal = renderReplace dm
     let s = render' x renderReplaceInternal
     return s
-    
+
+
+
 {-
 renderWithReplacement :: (Map String String) -> String -> [Attribute] -> [Element] -> (String, [Attribute], [Element])
 renderWithReplacement dm s as xs = (s, as, xs)

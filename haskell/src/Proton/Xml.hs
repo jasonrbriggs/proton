@@ -174,7 +174,6 @@ getData (RenderCallbackFn a b) = do
 getFn (RenderCallbackFn a b) = b
 
 
---renderNoop :: String -> [Attribute] -> [Element] -> (String, [Attribute], [Element])
 renderNoop (s, atts, xs) = RenderCallbackFn (s, atts, xs) renderNoop
 
 
