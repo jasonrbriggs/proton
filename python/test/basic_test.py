@@ -72,13 +72,19 @@ class TestBasicFunctionality(unittest.TestCase):
         et1 = etree.fromstring(out1)
 
         tmp = template.get_template('basic.xhtml')
-        tmp.set_value('title', 'Basic Xhtml Page 2', '*')
+        tmp.set_value('title', 'Basic Xhtml Page 1', 0)
+        tmp.set_value('title', 'Basic Xhtml Page 2', 1)
+        tmp.set_value('content', 'Content goes here')
+        tmp.set_value('link', 'Link goes here')
+        tmp.set_attribute('link', 'href', 'http://www.google.com')
 
         out2 = str(tmp)
+        print(out2)
         et2 = etree.fromstring(out2)
 
         self.assert_(et1.find('head/title').text == 'Basic Xhtml Page', 'incorrect title')
-        self.assert_(et2.find('head/title').text == 'Basic Xhtml Page 2', 'incorrect title')
+        self.assert_(et2.find('head/title').text == 'Basic Xhtml Page 1', 'incorrect title')
+        self.assert_(et2.find('body/h1').text == 'Basic Xhtml Page 2', 'incorrect title')
 
     def test_basic_with_namespace(self):
         tmp = template.get_template('basic-with-namespace.xml')
@@ -89,7 +95,7 @@ class TestBasicFunctionality(unittest.TestCase):
         tmp.set_value('last-modified', '2012-01-01T23:59:59', 0)
 
         tmp.set_value('url', 'http://testhost/test2.html', 1)
-        tmp.set_value('last-modified', '2012-01-02T23:59:59', 1)
+        tmp.set_value('last-modified', '2012-01-02T12:59:59', 1)
 
         out = str(tmp)
         print(out)

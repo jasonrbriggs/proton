@@ -1,14 +1,26 @@
-module Proton.Template where
+module Proton.Template (
+Template(..),
+setElementValue,
+setAttributeValue,
+repeatElement,
+hideElement,
+loadTemplates,
+getTemplate,
+renderTemplate
+) where
 
 import qualified Data.Map as Map
 import Data.Maybe as Mb
+import System.Directory
+import System.FilePath
+import Data.String.Utils
 
 import Proton.Xml as Xml
 
-data DataValue = DataValue { dval :: String, dpos :: Int }
-               | DataNameValue { dnname :: String, dnval :: String, dnpos :: Int }
-               | Repeat Int
-               | Hide Int
+data DataValue = DataValue { dval :: String, dpos :: Integer }
+               | DataNameValue { dnname :: String, dnval :: String, dnpos :: Integer }
+               | Repeat Integer
+               | Hide Integer
                 deriving (Show)
 
 
@@ -22,14 +34,30 @@ data Template = Template { xml :: Xml.Element, data_map :: DataMap }
 
 instance Show Template where
   show (Template xml data_map) = "Template: " ++ (show data_map)
+  show (NoTemplate) = "NoTemplate"
   
   
 data Templates = Templates { tmpl_map :: (Map.Map String Template) }
     deriving (Show)
 
 
-templates :: IO Templates
-templates = return (Templates Map.empty)
+validExt f = (endswith "xhtml" f) || (endswith "xml" f)
+
+getValidFiles dir = do
+    d <- getDirectoryContents dir
+    return (map (\x -> dir ++ [pathSeparator] ++ x) (filter (validExt) d))
+
+
+loadTemplates dir = do
+    let tmps = Templates Map.empty
+    dircontents <- getValidFiles dir
+    loadTemplates' tmps dircontents
+
+
+loadTemplates' tmps [] = return tmps
+loadTemplates' tmps (x:xs) = do
+    tmps <- loadTemplate tmps x
+    loadTemplates' tmps xs
 
 
 loadTemplate tmps name = do
@@ -47,28 +75,78 @@ getTemplate tmps name = do
     return (Map.findWithDefault NoTemplate name mp)
 
 
-
-setElementValue tmp name value pos = do
+setElementValue tmp eid value pos = do
     let dm = data_map tmp
     let em = eid_map dm
     let am = aid_map dm
     let x = xml tmp
-    let elemlist = Map.findWithDefault [] name em
-    let newem = Map.insert name (elemlist ++ [DataValue value pos]) em
+    let elemlist = Map.findWithDefault [] eid em
+    let newem = Map.insert eid (elemlist ++ [DataValue value pos]) em
     let newdm = DataMap newem am
     return (Template x newdm)
 
 
-setAttributeValue tmp name attname value pos = do
+setAttributeValue tmp aid attname value pos = do
     let dm = data_map tmp
     let em = eid_map dm
     let am = aid_map dm
     let x = xml tmp
-    let attlist = Map.findWithDefault [] name am
-    let newam = Map.insert name (attlist ++ [DataNameValue attname value pos]) am
+    let attlist = Map.findWithDefault [] aid am
+    let newam = Map.insert aid (attlist ++ [DataNameValue attname value pos]) am
     let newdm = DataMap em newam
     return (Template x newdm)
 
+
+repeatElement tmp rid count = do
+    let (Element elemtype s atts xs) = xml tmp
+    let dm = data_map tmp
+    return $ Template (Element elemtype s atts (repeatElements xs rid count)) dm
+
+
+repeatElements :: [Element] -> String -> Integer -> [Element]
+repeatElements [] _ _ = []
+repeatElements (x:xs) rid count = (repeatElement' x rid count) ++ (repeatElements xs rid count)
+
+
+repeatElement' :: Element -> String -> Integer -> [Element]
+repeatElement' x rid count = do
+    let (Element elemtype s atts xs) = x
+    let ridatt = findAttribute "rid" atts
+    case ridatt of
+        (Attribute name val occ) -> do
+            if val == rid
+                then do
+                    [x] ++ repeatElementCopy x (count - 1) 1
+                else [Element elemtype s atts (repeatElements xs rid count)]
+        (NoAttribute) -> [Element elemtype s atts (repeatElements xs rid count)]
+
+
+repeatElementCopy x 0 _ = []
+repeatElementCopy x count increment =
+    [copyElement x increment] ++ repeatElementCopy x (count - 1) (increment + 1)
+
+
+hideElement tmp eid pos = do
+    let (Element elemtype s atts xs) = xml tmp
+    let dm = data_map tmp
+    return $ Template (Element elemtype s atts (hideElements eid pos xs)) dm
+
+
+hideElements eid pos [] = []
+hideElements eid pos (e:es) = do
+    let (Element elemtype s atts xs) = e
+    let eidatt = findAttribute "eid" atts
+    case eidatt of
+        (Attribute name val occ) -> do
+            if val == eid || pos == occ
+                then es
+                else [hideElement' eid pos e] ++ hideElements eid pos es
+        (NoAttribute) -> [hideElement' eid pos e] ++ hideElements eid pos es
+
+
+hideElement' eid pos e = do
+     let (Element elemtype s atts xs) = e
+     Element elemtype s atts (hideElements eid pos xs)
 
 
 renderReplace dm (s, atts, xs) = do

@@ -4,6 +4,7 @@ Attribute(..),
 ElementType(..),
 RenderCallbackFn(..),
 containsAttribute,
+copyElement,
 findAttribute,
 getAttributes,
 getChildren,
@@ -18,7 +19,7 @@ import Text.Regex
 import qualified Data.Map as Map
 
 
-data Attribute = Attribute { attname :: String, attvalue :: String, occurrence :: Int }
+data Attribute = Attribute { attname :: String, attvalue :: String, occurrence :: Integer }
                | NoAttribute
                  deriving (Show)
 
@@ -93,6 +94,24 @@ containsAttribute name (x:xs) = do
     else containsAttribute name xs
 
 
+incrementAttributes      :: [Attribute] -> Integer -> [Attribute]
+incrementAttributes [] _ = []
+incrementAttributes (a:as) increment = do
+    let (Attribute name value occ) = a
+    [Attribute name value (occ + increment)] ++ (incrementAttributes as increment)
+
+
+copyElement :: Element -> Integer -> Element
+copyElement (Element elemtype s atts xs) increment = do
+    Element elemtype s (incrementAttributes atts increment) (copyElements xs increment)
+
+
+copyElements :: [Element] -> Integer -> [Element]
+copyElements [] _ = []
+copyElements (x:xs) increment = do
+    [copyElement x increment] ++ (copyElements xs increment)
+
+
 getChildren :: Element -> [Element]
 getChildren (Element elemtype s atts xs) = xs
 
@@ -102,7 +121,7 @@ getAttributes (Element elemtype s atts xs) = atts
 
 
 -- todo: fix escaped double quote in attr value
-parseAttributes          :: String -> Map.Map String Int -> ([Attribute], Map.Map String Int)
+parseAttributes          :: String -> Map.Map String Integer -> ([Attribute], Map.Map String Integer)
 parseAttributes "" dm    = ([], dm)
 parseAttributes ">" dm   = ([], dm)
 parseAttributes " />" dm = ([], dm)
@@ -115,7 +134,7 @@ parseAttributes s dm     = do
     let count = Map.findWithDefault 0 key dm
     let newdm = Map.insert key (count+1) dm
     let (newatts, finaldm) = if rest /= "" then parseAttributes (tail rest) newdm else ([], newdm)
-    ([Attribute name value (count+1)] ++ newatts, finaldm)
+    ([Attribute name value (count + 1)] ++ newatts, finaldm)
 
 
 -- return the tag name, and then the remaining content of the element
@@ -126,7 +145,7 @@ parseTag s = do
 
 
 -- internal xml parser code
-parse :: [String] -> Map.Map String Int -> ([Element], [String], Map.Map String Int)
+parse :: [String] -> Map.Map String Integer -> ([Element], [String], Map.Map String Integer)
 parse [] dm = ([], [], dm)
 parse (x:xs) dm = do
     let first = head x
@@ -212,7 +231,10 @@ renderList (x:xs) fn = do
 
 
 renderAttribute :: Attribute -> String
-renderAttribute (Attribute name val occ) = " " ++ name ++ "=\"" ++ val ++ "\""
+renderAttribute (Attribute name val occ) = do
+    if name == "rid" || name == "eid" || name == "aid" 
+        then ""
+        else " " ++ name ++ "=\"" ++ val ++ "\""
 
 
 renderAttributeList :: [Attribute] -> String
