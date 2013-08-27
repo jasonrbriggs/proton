@@ -1,6 +1,7 @@
 module Proton.Template (
 Template(..),
 setElementValue,
+setElementValues,
 setAttributeValue,
 repeatElement,
 hideElement,
@@ -84,6 +85,15 @@ setElementValue tmp eid value pos = do
     let newem = Map.insert eid (elemlist ++ [DataValue value pos]) em
     let newdm = DataMap newem am
     return (Template x newdm)
+
+setElementValues tmp eid values = do
+    tmp <- repeatElement tmp eid (toInteger $ length values)
+    setElementValues' tmp eid values 1
+
+setElementValues' tmp _ [] _ = return tmp
+setElementValues' tmp eid (x:xs) pos = do
+    tmp <- setElementValue tmp eid x pos
+    setElementValues' tmp eid xs (pos + 1)
 
 
 setAttributeValue tmp aid attname value pos = do

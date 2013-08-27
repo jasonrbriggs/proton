@@ -20,7 +20,7 @@ A simple Proton template looks like this:
         </body>
     </html>
 
-And to render this template, you might do something like this:
+And to render this template in Python, you might do something like this:
 
     from proton import template
     tmp = template.get_template('test.xhtml')
@@ -34,4 +34,15 @@ And to render this template, you might do something like this:
         tmp.set_value('list-item', 'test%s' % x, x)
 
     print(str(tmp))
+
+Similarly in Haskell, you could do the following:
+
+    tmps <- loadTemplates "templates"
+    tmp <- getTemplate tmps "templates/test.xhtml"
+    tmp <- setElementValue tmp "title" "An Xhtml Page" 0
+    tmp <- setElementValue tmp "link" "This is a link to Google" 0
+    tmp <- setAttributeValue tmp "link" "href" "http://www.google.com" 0
+    tmp <- setElementValues tmp "list-item" (map (\x -> "test" ++ (show x)) [0..4])
+    
+    s <- renderTemplate tmp
 
