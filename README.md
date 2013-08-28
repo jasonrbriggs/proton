@@ -34,6 +34,27 @@ And to render this template in Python, you might do something like this:
         tmp.set_value('list-item', 'test%s' % x, x)
 
     print(str(tmp))
+    
+Resulting in the following output:
+
+    <html>
+        <head>
+            <title>An Xhtml Page</title>
+        </head>
+        <body>
+            <h1>An Xhtml Page</h1>
+
+            <p><a href="http://www.google.com">This is a link to Google</a></p>
+
+            <ul>
+                <li>test0</li>
+                <li>test1</li>
+                <li>test2</li>
+                <li>test3</li>
+                <li>test4</li>
+            </ul>
+        </body>
+    </html>
 
 Similarly in Haskell, you could do the following:
 
