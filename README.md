@@ -67,3 +67,4 @@ Similarly in Haskell, you could do the following:
     
     s <- renderTemplate tmp
 
+Note: the haskell code is current incomplete (i.e. not fully functional)
