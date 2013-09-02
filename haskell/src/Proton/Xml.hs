@@ -1,4 +1,8 @@
-module Proton.Xml (
+module Proton.Xml where
+
+
+{- 
+(
 Element(..),
 Attribute(..),
 ElementType(..),
@@ -7,83 +11,19 @@ containsAttribute,
 copyElement,
 findAttribute,
 getAttributes,
+getAttributeAsKey,
 getChildren,
 parseXmlFile,
 render,
 render'
 ) where
+-}
 
-import Data.String.Utils
 import Data.List (intercalate)
-import Text.Regex
 import qualified Data.Map as Map
 
-
-data Attribute = Attribute { attname :: String, attvalue :: String, occurrence :: Integer }
-               | NoAttribute
-                 deriving (Show)
-
-data ElementType = Root
-                 | Raw
-                 | Open
-                 | Closed
-                 deriving (Show)
-
-data Element = Element ElementType String [Attribute] [Element]
-               deriving (Show)
-
-data RenderCallbackFn a b = RenderCallbackFn a (b -> RenderCallbackFn a b)
-
-
--- does the char in arg #2 match any of the chars in arg #1?
-matches :: [Char] -> Char -> Bool
-matches [] c = False
-matches (x:xs) c = do
-   if x == c then True
-   else matches xs c
-
-
-isWhitespace char = matches [' ','\n', '\t', '\r'] char
-
-
--- same as span, except the first list is loaded with elements up-to-and-including the match
-spanUntil chk [] = ([], [])
-spanUntil chk (x:xs) =
-   if chk x then ([ x ], xs)
-   else do
-       let (hd, tl) = spanUntil chk xs
-       ([x] ++ hd, tl)
-
-
-splitOn         :: Char -> String -> (String, String)
-splitOn char s = do
-    let (splitA, splitB) = span (/=char) s
-    if (length splitB) > 0 then (splitA, tail splitB)
-    else (splitA, splitB)
-
-
--- split used for XML files, to ensure an xml tag element is a distinct member of the list returned
-splitText :: String -> [String]
-splitText [] = []
-splitText (x:xs) = 
-    if x == '<' then do
-        let (first, rest) = spanUntil (=='>') xs
-        [x : first] ++ splitText rest
-    else do
-        if isWhitespace x then do
-            let (first, rest) = span (isWhitespace) xs
-            [x : first] ++ splitText rest
-        else do
-            let (first, rest) = span (/='<') xs
-            [x : first] ++ splitText rest
-
-
-findAttribute :: String -> [Attribute] -> Attribute
-findAttribute name [] = NoAttribute
-findAttribute name (x:xs) = do
-    let aname = attname x
-    if aname == name then x
-    else findAttribute name xs
+import Proton.XmlTypes
+import Proton.XmlInternal
 
 
 containsAttribute :: String -> [Attribute] -> Bool
@@ -94,22 +34,22 @@ containsAttribute name (x:xs) = do
     else containsAttribute name xs
 
 
-incrementAttributes      :: [Attribute] -> Integer -> [Attribute]
-incrementAttributes [] _ = []
-incrementAttributes (a:as) increment = do
-    let (Attribute name value occ) = a
-    [Attribute name value (occ + increment)] ++ (incrementAttributes as increment)
+copyElement :: Element -> Element
+copyElement (Element elemtype s atts xs) = Element elemtype s atts (copyElements xs)
 
 
-copyElement :: Element -> Integer -> Element
-copyElement (Element elemtype s atts xs) increment = do
-    Element elemtype s (incrementAttributes atts increment) (copyElements xs increment)
+copyElements :: [Element] -> [Element]
+copyElements [] = []
+copyElements (x:xs) = do
+    [copyElement x] ++ (copyElements xs)
 
 
-copyElements :: [Element] -> Integer -> [Element]
-copyElements [] _ = []
-copyElements (x:xs) increment = do
-    [copyElement x increment] ++ (copyElements xs increment)
+findAttribute :: String -> [Attribute] -> Attribute
+findAttribute name [] = NoAttribute
+findAttribute name (x:xs) = do
+    let aname = attname x
+    if aname == name then x
+    else findAttribute name xs
 
 
 getChildren :: Element -> [Element]
@@ -121,20 +61,18 @@ getAttributes (Element elemtype s atts xs) = atts
 
 
 -- todo: fix escaped double quote in attr value
-parseAttributes          :: String -> Map.Map String Integer -> ([Attribute], Map.Map String Integer)
-parseAttributes "" dm    = ([], dm)
-parseAttributes ">" dm   = ([], dm)
-parseAttributes " />" dm = ([], dm)
-parseAttributes "/>" dm  = ([], dm)
-parseAttributes s dm     = do
+parseAttributes          :: String -> [Attribute]
+parseAttributes ""    = []
+parseAttributes ">"   = []
+parseAttributes " />" = []
+parseAttributes "/>"  = []
+parseAttributes s     = do
     let news = dropWhile (matches [' ', '"']) s
     let (name, maybeValue) = splitOn '=' news
     let (value, rest) = span (not . matches ['"']) $ dropWhile (matches ['=', '"', '>']) maybeValue
     let key = name ++ "=" ++ value
-    let count = Map.findWithDefault 0 key dm
-    let newdm = Map.insert key (count+1) dm
-    let (newatts, finaldm) = if rest /= "" then parseAttributes (tail rest) newdm else ([], newdm)
-    ([Attribute name value (count + 1)] ++ newatts, finaldm)
+    let newatts = if rest /= "" then parseAttributes (tail rest) else []
+    [Attribute name value 1] ++ newatts
 
 
 -- return the tag name, and then the remaining content of the element
@@ -145,9 +83,9 @@ parseTag s = do
 
 
 -- internal xml parser code
-parse :: [String] -> Map.Map String Integer -> ([Element], [String], Map.Map String Integer)
-parse [] dm = ([], [], dm)
-parse (x:xs) dm = do
+parse :: [String] -> ([Element], [String])
+parse [] = ([], [])
+parse (x:xs) = do
     let first = head x
     let sec = head (tail x)
     let seclst = last (init x)
@@ -155,33 +93,33 @@ parse (x:xs) dm = do
     
     case (first, sec, seclst, lst) of
         ('<', '?', _, _)   -> do
-            let (parsed, remaining, dm1) = parse xs dm
-            ([Element Raw x [] []] ++ parsed, remaining, dm1)
+            let (parsed, remaining) = parse xs
+            ([Element Raw x [] []] ++ parsed, remaining)
         ('<', '!', _, _)   -> do
-            let (parsed, remaining, dm1) = parse xs dm
-            ([Element Raw x [] []] ++ parsed, remaining, dm1)
+            let (parsed, remaining) = parse xs
+            ([Element Raw x [] []] ++ parsed, remaining)
         ('<', _, '/', '>') -> do
             let (tag, tagcontent) = parseTag x
-            let (attributes, dm1) = parseAttributes tagcontent dm
-            let (parsed, remaining, dm2) = parse xs dm1
-            ([Element Closed tag attributes []] ++ parsed, remaining, dm2)
-        ('<', '/', _, '>') -> ([], xs, dm)
+            let attributes = parseAttributes tagcontent
+            let (parsed, remaining) = parse xs
+            ([Element Closed tag attributes []] ++ parsed, remaining)
+        ('<', '/', _, '>') -> ([], xs)
         ('<', _, _, '>')   -> do
             let (tag, tagcontent) = parseTag x
-            let (attributes, dm1) = parseAttributes tagcontent dm
-            let (children, siblings, dm2) = parse xs dm1
-            let (parsed, remaining, dm3) = parse siblings dm2
-            ([Element Open tag attributes children] ++ parsed, remaining, dm3)
+            let attributes = parseAttributes tagcontent
+            let (children, siblings) = parse xs
+            let (parsed, remaining) = parse siblings
+            ([Element Open tag attributes children] ++ parsed, remaining)
         (_, _, _, _)       -> do
-            let (parsed, remaining, dm1) = parse xs dm
-            ([Element Raw x [] []] ++ parsed, remaining, dm1)
+            let (parsed, remaining) = parse xs
+            ([Element Raw x [] []] ++ parsed, remaining)
 
 
 parseXmlFile :: String -> IO Element
 parseXmlFile fname = do    
    file <- readFile fname
    let sp = splitText file
-   let (parsed, _, _) = parse sp Map.empty
+   let (parsed, _) = parse sp
    return (Element Root "" [] parsed)
 
 
@@ -193,14 +131,55 @@ getData (RenderCallbackFn a b) = do
 getFn (RenderCallbackFn a b) = b
 
 
+getAttributeAsKey att = do
+    let name = attname att
+    let val = attvalue att
+    name ++ "/" ++ val
+
+
 renderNoop (s, atts, xs) = RenderCallbackFn (s, atts, xs) renderNoop
 
 
 render :: Element -> String
-render el = render' el renderNoop
+render e = render' e renderNoop
 
 
-render' (Element elemtype s atts xs) fn = do
+render' e fn = do
+    let (newe, _) = preprocessElement e Map.empty
+    renderElement newe fn
+
+
+incrementOccurrences [] occurrences = ([], occurrences)
+incrementOccurrences (a:as) occurrences = do
+    let (Attribute name val occurrence) = a
+
+    if name == "eid" || name == "aid"
+        then do
+            let key = name ++ "/" ++ val
+            let count = (Map.findWithDefault 0 key occurrences) + 1
+            let newoccurrences = Map.insert key count occurrences
+            let (newatts, newoccurrences2) = incrementOccurrences as newoccurrences
+            ([Attribute name val count] ++ newatts, newoccurrences2)
+        else do
+            let (newatts, newoccurrences) = incrementOccurrences as occurrences
+            ([a] ++ newatts, newoccurrences)
+
+
+preprocessElement e occurrences  = do
+    let (Element elemtype s atts xs) = e
+    let (newatts, newoccurrences) = incrementOccurrences atts occurrences
+    let (newxs, newoccurrences2) = preprocessElement' xs newoccurrences
+    (Element elemtype s newatts newxs, newoccurrences2)
+
+
+preprocessElement' [] occurrences = ([], occurrences)
+preprocessElement' (e:es) occurrences = do
+    let (newe, newoccurrences) = preprocessElement e occurrences
+    let (newes, newoccurrences2) = preprocessElement' es newoccurrences
+    ([newe] ++ newes, newoccurrences2)
+    
+
+renderElement (Element elemtype s atts xs) fn = do
     case elemtype of
         (Raw) -> s
         (Closed) -> renderClosed s atts fn
@@ -225,9 +204,7 @@ renderOpen s atts xs fn = do
 
 --renderList :: [Element] -> (String -> [Attribute] -> [Element] -> (String, [Attribute], [Element])) -> String
 renderList [] fn     = ""
-renderList (x:xs) fn = do
-    (render' x fn) ++ (intercalate "" (map renderInternal xs))
-    where renderInternal x = render' x fn
+renderList (x:xs) fn = (renderElement x fn) ++ (renderList xs fn)
 
 
 renderAttribute :: Attribute -> String
@@ -239,4 +216,4 @@ renderAttribute (Attribute name val occ) = do
 
 renderAttributeList :: [Attribute] -> String
 renderAttributeList [] = ""
-renderAttributeList (x:xs) = renderAttribute x ++ (intercalate "" (map renderAttribute xs))
+renderAttributeList (x:xs) = renderAttribute x ++ renderAttributeList xs

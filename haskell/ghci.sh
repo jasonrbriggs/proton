@@ -1,3 +1,4 @@
 #! /bin/sh
 
-ghci -isrc:testsuite
+ghci -isrc:testsuite -fbreak-on-error
+#ghci -isrc:testsuite 

@@ -28,7 +28,7 @@ class TestAdvancedFunctionality(unittest.TestCase):
         template.base_dir = os.path.dirname(os.path.realpath(__file__))
 
     def test_repeat(self):
-        tmp = template.get_template('repeat_complex.xhtml')
+        tmp = template.get_template('repeat-complex.xhtml')
 
         tmp.repeat('posts', 5)
 

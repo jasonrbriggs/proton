@@ -9,7 +9,7 @@ data TextLink = TextLink String String
 
 setTextAndLink :: Template -> String -> [TextLink] -> IO Template
 setTextAndLink tmp name items = do
-    tmp <- repeatElement tmp name (toInteger $ length items)
+    tmp <- repeatElement tmp name 0 (toInteger $ length items)
     setTextAndLink' tmp name items 1
 
 setTextAndLink' :: Template -> String -> [TextLink] -> Integer -> IO Template

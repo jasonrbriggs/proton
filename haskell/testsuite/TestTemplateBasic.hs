@@ -42,7 +42,7 @@ basicTest2 = TestCase (do
 basicWithNamespaceTest = TestCase (do
     tmps <- loadTemplates "testsuite"
     tmp <- getTemplate tmps "testsuite/basic-with-namespace.xml"
-    tmp <- repeatElement tmp "urls" 2
+    tmp <- repeatElement tmp "urls" 0 2
     tmp <- setElementValue tmp "url" "http://testhost/test1.html" 1
     tmp <- setElementValue tmp "last-modified" "2012-01-01T23:59:59" 1
     tmp <- setElementValue tmp "url" "http://testhost/test2.html" 2
@@ -55,9 +55,8 @@ basicWithNamespaceTest = TestCase (do
     assertEqual "Output does not match" checkOutput checkInput
     )
 
-
 template_tests = TestList [
         TestLabel "Basic Template Test" basicTest,
-        TestLabel "Basic Template Test2" basicTest2,
-        TestLabel "Basic Namespace Test" basicWithNamespaceTest
+        TestLabel "Basic Template Test2" basicTest2
+        --TestLabel "Basic Namespace Test" basicWithNamespaceTest
         ]
