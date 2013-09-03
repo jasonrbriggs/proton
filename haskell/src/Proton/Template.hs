@@ -41,16 +41,17 @@ instance Show DataMap where
     show (DataMap eid_map aid_map) = "DataMap: " ++ (show eid_map) ++ "," ++ (show aid_map)
 
 
-data Template = Template { xml :: XmlTypes.Element, data_map :: DataMap }
+data Template = Template { xml :: XmlTypes.Element, data_map :: DataMap, tmpsref :: Templates }
               | NoTemplate
 
 
 instance Show Template where
-  show (Template xml data_map) = "Template: " ++ (show data_map)
+  show (Template xml data_map tmps) = "Template: " ++ (show data_map)
   show (NoTemplate) = "NoTemplate"
   
   
 data Templates = Templates { tmpl_map :: (Map.Map String Template) }
+               | DummyTemplates
     deriving (Show)
 
 
@@ -77,7 +78,7 @@ loadTemplate tmps name = do
     if (Map.member name (tmpl_map tmps)) then return tmps
     else do
         x <- parseXmlFile name
-        let t = Template x (DataMap Map.empty Map.empty)
+        let t = Template x (DataMap Map.empty Map.empty) DummyTemplates
         let templateMap = tmpl_map tmps
         return tmps { tmpl_map = Map.insert name t templateMap }
 
@@ -85,7 +86,8 @@ loadTemplate tmps name = do
 --getTemplate  :: Templates -> String -> IO Template
 getTemplate tmps name = do
     let mp = tmpl_map tmps
-    return (Map.findWithDefault NoTemplate name mp)
+    let (Template x dm _) = Map.findWithDefault NoTemplate name mp
+    return (Template x dm tmps)
 
 
 setElementValue tmp eid value pos = do
@@ -93,10 +95,11 @@ setElementValue tmp eid value pos = do
     let em = eid_map dm
     let am = aid_map dm
     let x = xml tmp
+    let tmps = tmpsref tmp
     let elemlist = Map.findWithDefault [] eid em
     let newem = Map.insert eid (elemlist ++ [DataValue value pos]) em
     let newdm = DataMap newem am
-    return (Template x newdm)
+    return (Template x newdm tmps)
 
 
 setElementValues tmp eid values = do
@@ -115,24 +118,67 @@ setAttributeValue tmp aid attname value pos = do
     let em = eid_map dm
     let am = aid_map dm
     let x = xml tmp
+    let tmps = tmpsref tmp
     let attlist = Map.findWithDefault [] aid am
     let newam = Map.insert aid (attlist ++ [DataNameValue attname value pos]) am
     let newdm = DataMap em newam
-    return (Template x newdm)
+    return (Template x newdm tmps)
+
+
+include tmp eid template_name pos = do
+    let (Element elemtype s atts xs) = xml tmp
+    let dm = data_map tmp
+    let tmps = tmpsref tmp
+    included_tmp <- getTemplate tmps template_name
+    case included_tmp of
+        NoTemplate -> return tmp
+        _          -> do
+                let (Element _ _ _ include_xs) = xml included_tmp
+                let (newxs, _) = (includeSearch' eid include_xs pos 0 xs)
+                return $ Template (Element elemtype s atts newxs) dm tmps
+
+
+include' x eid include_xs pos current = do
+    let (Element elemtype s atts xs) = x
+    let eidatt = findAttribute "eid" atts
+    case eidatt of
+        (Attribute name val occ) -> do
+            if val == eid
+                then do
+                    let newcurrent = current + 1
+                    if newcurrent == pos || pos <= 0
+                        then (include_xs, newcurrent)
+                        else do
+                            let (newxs, newcurrent2) = (includeSearch' eid include_xs pos newcurrent xs)
+                            ([Element elemtype s atts newxs], newcurrent2)
+                else do
+                    let (newxs, newcurrent) = (includeSearch' eid include_xs pos current xs)
+                    ([Element elemtype s atts newxs], newcurrent)
+        (NoAttribute) -> do
+            let (newxs, newcurrent) = (includeSearch' eid include_xs pos current xs)
+            ([Element elemtype s atts newxs], newcurrent)
+
+
+includeSearch' eid include_xs pos current [] = ([], current)
+includeSearch' eid include_xs pos current (x:xs) = do
+    let (xs1, newcurrent) = include' x eid include_xs pos current
+    let (xs2, newcurrent2) = includeSearch' eid include_xs pos newcurrent xs
+    (xs1 ++ xs2, newcurrent2)
 
 
 repeatElement tmp rid pos count = do
     let (Element elemtype s atts xs) = xml tmp
     let dm = data_map tmp
+    let tmps = tmpsref tmp
     let (newxs, current) = (repeatElements rid pos 0 count xs)
-    return $ Template (Element elemtype s atts newxs) dm
+    return $ Template (Element elemtype s atts newxs) dm tmps
 
 
 repeatElements :: String -> Integer -> Integer -> Integer -> [Element] -> ([Element], Integer)
 repeatElements _ _ current _ [] = ([], current)
 repeatElements rid pos current count (x:xs) = do
-    let (xs1, newcurrent) = (repeatElement' x rid pos current count)
-    let (xs2, newcurrent2) = (repeatElements rid pos newcurrent count xs) 
+    let (xs1, newcurrent) = repeatElement' x rid pos current count
+    let (xs2, newcurrent2) = repeatElements rid pos newcurrent count xs
     (xs1 ++ xs2, newcurrent2)
 
 
@@ -166,8 +212,9 @@ repeatElementCopy x count =
 hideElement tmp eid pos = do
     let (Element elemtype s atts xs) = xml tmp
     let dm = data_map tmp
+    let tmps = tmpsref tmp
     let (newxs, current) = (hideElements eid pos 0 xs)
-    return $ Template (Element elemtype s atts newxs) dm
+    return $ Template (Element elemtype s atts newxs) dm tmps
 
 
 hideElements eid pos current [] = ([], current)

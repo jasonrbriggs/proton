@@ -55,8 +55,25 @@ basicWithNamespaceTest = TestCase (do
     assertEqual "Output does not match" checkOutput checkInput
     )
 
+includeTest = TestCase (do
+    tmps <- loadTemplates "testsuite"
+    tmp <- getTemplate tmps "testsuite/include1.xhtml"
+    tmp <- setElementValue tmp "title" "Page Title" 0
+    tmp <- include tmp "include-content" "testsuite/include2.xhtml" 0
+    tmp <- setElementValue tmp "para1" "First paragraph of text" 0
+    tmp <- setElementValue tmp "para2" "Second paragraph of text" 0
+    
+    s <- renderTemplate tmp
+    
+    checkFile <- readFile "testsuite/include-result.xhtml"
+    let checkInput = stripWhitespace s
+    let checkOutput = stripWhitespace checkFile
+    assertEqual "Output does not match" checkOutput checkInput
+    )
+
 template_tests = TestList [
         TestLabel "Basic Template Test" basicTest,
-        TestLabel "Basic Template Test2" basicTest2
-        --TestLabel "Basic Namespace Test" basicWithNamespaceTest
+        TestLabel "Basic Template Test2" basicTest2,
+        TestLabel "Basic Namespace Test" basicWithNamespaceTest,
+        TestLabel "Include Test" includeTest
         ]
