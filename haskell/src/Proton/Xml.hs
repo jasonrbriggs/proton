@@ -141,6 +141,7 @@ render' e fn = do
     renderElement newe fn
 
 
+incrementOccurrences :: [Attribute] -> Map.Map String Integer -> ([Attribute], Map.Map String Integer)
 incrementOccurrences [] occurrences     = ([], occurrences)
 incrementOccurrences (a:as) occurrences = do
     let (Attribute name val occurrence) = a
@@ -157,6 +158,7 @@ incrementOccurrences (a:as) occurrences = do
             ([a] ++ newatts, newoccurrences)
 
 
+preprocessElement :: Element -> Map.Map String Integer -> (Element, Map.Map String Integer)
 preprocessElement e occurrences  = do
     let (Element elemtype s atts xs) = e
     let (newatts, newoccurrences) = incrementOccurrences atts occurrences
@@ -164,6 +166,7 @@ preprocessElement e occurrences  = do
     (Element elemtype s newatts newxs, newoccurrences2)
 
 
+preprocessElement' :: [Element] -> Map.Map String Integer -> ([Element], Map.Map String Integer)
 preprocessElement' [] occurrences = ([], occurrences)
 preprocessElement' (e:es) occurrences = do
     let (newe, newoccurrences) = preprocessElement e occurrences
@@ -171,6 +174,7 @@ preprocessElement' (e:es) occurrences = do
     ([newe] ++ newes, newoccurrences2)
     
 
+renderElement :: Element -> ((String, [Attribute], [Element]) -> RenderCallbackFn (String, [Attribute], [Element]) (String, [Attribute], [Element])) -> String
 renderElement (Element elemtype s atts xs) fn = do
     case elemtype of
         (Raw) -> s
@@ -179,14 +183,14 @@ renderElement (Element elemtype s atts xs) fn = do
         (Root) -> renderList xs fn
 
 
---renderClosed :: RenderCallbackFn a b -> String
+renderClosed :: String -> [Attribute] -> ((String, [Attribute], [Element]) -> RenderCallbackFn (String, [Attribute], [Element]) (String, [Attribute], [Element])) -> String
 renderClosed s atts fn = do
     let fnres = fn (s, atts, [(Element Raw "" [] [])])
     let (newtag, newatts, _) = getData fnres
     "<" ++ newtag ++ (renderAttributeList newatts) ++ " />"
 
 
---renderOpen :: String -> [Attribute] -> [Element] -> (String -> [Attribute] -> [Element] -> (String, [Attribute], [Element])) -> String
+renderOpen :: String -> [Attribute] -> [Element] -> ((String, [Attribute], [Element]) -> RenderCallbackFn (String, [Attribute], [Element]) (String, [Attribute], [Element])) -> String
 renderOpen s atts xs fn = do
     let fnres = fn (s, atts, xs)
     let (newtag, newatts, newxs) = getData fnres
@@ -194,12 +198,12 @@ renderOpen s atts xs fn = do
     "<" ++ newtag ++ (renderAttributeList newatts) ++ ">" ++ (renderList newxs newfn) ++ "</" ++ newtag ++ ">"
 
 
---renderList :: [Element] -> (String -> [Attribute] -> [Element] -> (String, [Attribute], [Element])) -> String
+renderList :: [Element] -> ((String, [Attribute], [Element]) -> RenderCallbackFn (String, [Attribute], [Element]) (String, [Attribute], [Element])) -> String
 renderList [] fn     = ""
 renderList (x:xs) fn = (renderElement x fn) ++ (renderList xs fn)
 
 
-renderAttribute                          :: Attribute -> String
+renderAttribute :: Attribute -> String
 renderAttribute (Attribute name val occ) = do
     if name == "rid" || name == "eid" || name == "aid" 
         then ""
