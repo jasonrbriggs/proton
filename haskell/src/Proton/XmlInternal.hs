@@ -10,11 +10,13 @@ matches (x:xs) c = do
    if x == c then True
    else matches xs c
    
-   
+
+isWhitespace :: Char -> Bool
 isWhitespace char = matches [' ','\n', '\t', '\r'] char
 
 
 -- same as span, except the first list is loaded with elements up-to-and-including the match
+spanUntil :: (a -> Bool) -> [a] -> ([a], [a])
 spanUntil chk [] = ([], [])
 spanUntil chk (x:xs) =
     if chk x 
@@ -24,6 +26,7 @@ spanUntil chk (x:xs) =
             ([x] ++ hd, tl)
 
 
+-- split a string where the first occurrence of a character (but do not return the char)
 splitOn :: Char -> String -> (String, String)
 splitOn char s = do
     let (splitA, splitB) = span (/=char) s
@@ -31,9 +34,14 @@ splitOn char s = do
     else (splitA, splitB)
 
 
+-- get the first char, and then look for the matching closing char (ignoring escaped chars)
+splitUntilClose :: String -> (String, String)
 splitUntilClose "" = ("", "")
 splitUntilClose (c:s) = splitUntilClose' s c ""
 
+-- internal function taking a string to split, a start delimiting character, and the first part of the tuple (used for appending)
+-- returns a tuple of two strings
+splitUntilClose' :: String -> Char -> String -> (String, String)
 splitUntilClose' "" untilc first = (first, "")
 splitUntilClose' (c1:s) untilc first = do
     if s == ""
