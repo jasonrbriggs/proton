@@ -12,4 +12,4 @@ checkResult testOutput resultFile = do
     chk <- readFile resultFile
     let chkOutput = stripWhitespace testOutput
     let chkResult = stripWhitespace chk
-    assertEqual ("Output does not match result file" ++ resultFile) chkOutput chkResult
+    assertEqual ("Output does not match result file" ++ resultFile) chkResult chkOutput

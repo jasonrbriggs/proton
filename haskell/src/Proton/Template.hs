@@ -11,7 +11,6 @@ include,
 renderTemplate
 ) where
 
-
 import qualified Data.Map as Map
 import Data.Maybe as Mb
 import System.Directory
@@ -51,25 +50,31 @@ data Templates = Templates { tmpl_map :: (Map.Map String Template) }
     deriving (Show)
 
 
+validExt :: String -> Bool
 validExt f = (endswith "xhtml" f) || (endswith "xml" f)
 
+
+getValidFiles :: FilePath -> IO [String]
 getValidFiles dir = do
     d <- getDirectoryContents dir
     return (map (\x -> dir ++ [pathSeparator] ++ x) (filter (validExt) d))
 
 
+loadTemplates :: String -> IO Templates
 loadTemplates dir = do
     let tmps = Templates Map.empty
     dircontents <- getValidFiles dir
     loadTemplates' tmps dircontents
 
 
+loadTemplates' :: Templates -> [String] -> IO Templates
 loadTemplates' tmps [] = return tmps
-loadTemplates' tmps (x:xs) = do
-    tmps <- loadTemplate tmps x
-    loadTemplates' tmps xs
+loadTemplates' tmps (s:ss) = do
+    tmps <- loadTemplate tmps s
+    loadTemplates' tmps ss
 
 
+loadTemplate :: Templates -> String -> IO Templates
 loadTemplate tmps name = do
     if (Map.member name (tmpl_map tmps)) then return tmps
     else do
@@ -79,13 +84,14 @@ loadTemplate tmps name = do
         return tmps { tmpl_map = Map.insert name t templateMap }
 
 
---getTemplate  :: Templates -> String -> IO Template
+getTemplate  :: Templates -> String -> IO Template
 getTemplate tmps name = do
     let mp = tmpl_map tmps
     let (Template x dm _) = Map.findWithDefault NoTemplate name mp
     return (Template x dm tmps)
 
 
+setElementValue :: Template -> String -> String -> Integer -> IO Template
 setElementValue tmp eid value pos = do
     let dm = data_map tmp
     let em = eid_map dm
@@ -98,17 +104,20 @@ setElementValue tmp eid value pos = do
     return (Template x newdm tmps)
 
 
+setElementValues :: Template -> String -> [String] -> IO Template
 setElementValues tmp eid values = do
     tmp <- repeatElement tmp eid 0 (toInteger $ length values)
     setElementValues' tmp eid values 1
 
 
+setElementValues' :: Template -> String -> [String] -> Integer -> IO Template
 setElementValues' tmp _ [] _ = return tmp
-setElementValues' tmp eid (x:xs) pos = do
-    tmp <- setElementValue tmp eid x pos
-    setElementValues' tmp eid xs (pos + 1)
+setElementValues' tmp eid (s:ss) pos = do
+    tmp <- setElementValue tmp eid s pos
+    setElementValues' tmp eid ss (pos + 1)
 
 
+setAttributeValue :: Template -> String -> String -> String -> Integer -> IO Template
 setAttributeValue tmp aid attname value pos = do
     let dm = data_map tmp
     let em = eid_map dm
@@ -121,6 +130,7 @@ setAttributeValue tmp aid attname value pos = do
     return (Template x newdm tmps)
 
 
+include :: Template -> String -> String -> Integer -> IO Template
 include tmp eid template_name pos = do
     let (Element elemtype s atts xs) = xml tmp
     let dm = data_map tmp
@@ -134,6 +144,7 @@ include tmp eid template_name pos = do
                 return $ Template (Element elemtype s atts newxs) dm tmps
 
 
+include' :: Element -> String -> [Element] -> Integer -> Integer -> ([Element], Integer)
 include' x eid include_xs pos current = do
     let (Element elemtype s atts xs) = x
     let eidatt = findAttribute "eid" atts
@@ -155,6 +166,7 @@ include' x eid include_xs pos current = do
             ([Element elemtype s atts newxs], newcurrent)
 
 
+includeSearch' :: String -> [Element] -> Integer -> Integer -> [Element] -> ([Element], Integer)
 includeSearch' eid include_xs pos current [] = ([], current)
 includeSearch' eid include_xs pos current (x:xs) = do
     let (xs1, newcurrent) = include' x eid include_xs pos current
@@ -162,6 +174,7 @@ includeSearch' eid include_xs pos current (x:xs) = do
     (xs1 ++ xs2, newcurrent2)
 
 
+repeatElement :: Template -> String -> Integer -> Integer -> IO Template
 repeatElement tmp rid pos count = do
     let (Element elemtype s atts xs) = xml tmp
     let dm = data_map tmp
@@ -200,11 +213,13 @@ repeatElement' x rid pos current count = do
             ([Element elemtype s atts newxs], newcurrent)
 
 
+repeatElementCopy :: Element -> Integer -> [Element]
 repeatElementCopy x 0 = []
 repeatElementCopy x count =
     [copyElement x] ++ repeatElementCopy x (count - 1)
 
 
+hideElement :: Template -> String -> Integer -> IO Template
 hideElement tmp eid pos = do
     let (Element elemtype s atts xs) = xml tmp
     let dm = data_map tmp
@@ -213,6 +228,7 @@ hideElement tmp eid pos = do
     return $ Template (Element elemtype s atts newxs) dm tmps
 
 
+hideElements :: String -> Integer -> Integer -> [Element] -> ([Element], Integer)
 hideElements eid pos current [] = ([], current)
 hideElements eid pos current (e:es) = do
     let (Element elemtype s atts xs) = e
@@ -229,6 +245,7 @@ hideElements eid pos current (e:es) = do
         (NoAttribute) -> hideElement' eid pos current (e:es)
 
 
+hideElement' :: String -> Integer -> Integer -> [Element] -> ([Element], Integer)
 hideElement' eid pos current [] = ([], current)
 hideElement' eid pos current (e:es) = do
      let (Element elemtype s atts xs) = e
@@ -237,7 +254,7 @@ hideElement' eid pos current (e:es) = do
      ([Element elemtype s atts newxs] ++ newxs2, newcurrent2)
 
 
---renderReplace :: DataMap -> Map.Map String Integer -> (String, [Attribute], [Element]) -> RenderCallbackFn (String, [Attribute], [Element]) (String, [Attribute], [Element])
+renderReplace :: DataMap -> (String, [Attribute], [Element]) -> RenderCallbackFn (String, [Attribute], [Element]) (String, [Attribute], [Element])
 renderReplace dm (s, atts, xs) = do
     let newxs = if containsAttribute "eid" atts 
         then do
@@ -254,7 +271,7 @@ renderReplace dm (s, atts, xs) = do
     RenderCallbackFn (s, newatts, newxs) (renderReplace dm)
 
 
---renderReplaceEID :: DataMap -> Integer -> [Element] -> Attribute -> [Element]
+renderReplaceEID :: DataMap -> [Element] -> Attribute -> [Element]
 renderReplaceEID dm xs eidatt = do
     let emap = eid_map dm
     let vs = Map.findWithDefault [] (attvalue eidatt) emap
@@ -262,6 +279,7 @@ renderReplaceEID dm xs eidatt = do
     renderReplaceEID' occurrence xs vs
 
 
+renderReplaceEID' :: Integer -> [Element] -> [DataValue] -> [Element]
 renderReplaceEID' occurrence xs [] = xs
 renderReplaceEID' occurrence xs (e:es) = do
     let pos = dpos e
@@ -278,18 +296,21 @@ renderReplaceAID dm atts aidatt = do
     renderReplaceAID' occurrence atts as
 
 
+renderReplaceAID' :: Integer -> [Attribute] -> [DataValue] -> [Attribute]
 renderReplaceAID' occurrence atts [] = atts
 renderReplaceAID' occurrence atts (a:as) = do
     let pos = dnpos a
     let name = dnname a
     let value = dnval a
     if occurrence == pos || pos <= 0
-        then replaceAttributeValue name value atts
+        then do
+            let newatts = replaceAttributeValue name value atts
+            renderReplaceAID' occurrence newatts as
         else renderReplaceAID' occurrence atts as
 
 
 replaceAttributeValue :: String -> String -> [Attribute] -> [Attribute]
-replaceAttributeValue name newvalue [] = []
+replaceAttributeValue name newvalue [] = [Attribute name newvalue 1]
 replaceAttributeValue name newvalue (a:as) = do
     let aname = attname a
     let occurrence = occ a
@@ -298,6 +319,7 @@ replaceAttributeValue name newvalue (a:as) = do
         else [a] ++ replaceAttributeValue name newvalue as
 
 
+renderTemplate :: Template -> IO String
 renderTemplate tmp = do
     let dm = data_map tmp
     let x = xml tmp

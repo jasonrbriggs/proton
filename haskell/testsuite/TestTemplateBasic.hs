@@ -27,6 +27,7 @@ basicTest2 = TestCase (do
     tmp <- setElementValue tmp "content" "Content goes here" 0
     tmp <- setElementValue tmp "link" "Link goes here" 0
     tmp <- setAttributeValue tmp "link" "href" "http://www.google.com" 0
+    tmp <- setAttributeValue tmp "link" "class" "testclass" 0
     s <- renderTemplate tmp
     
     checkResult s  "testsuite/basic-result2.xhtml"
