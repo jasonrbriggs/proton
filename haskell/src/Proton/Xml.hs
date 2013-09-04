@@ -8,7 +8,6 @@ copyElement,
 copyElements,
 findAttribute,
 getAttributes,
-getAttributeAsKey,
 getChildren,
 parseXmlFile,
 parseAttributes,
@@ -58,7 +57,7 @@ getAttributes :: Element -> [Attribute]
 getAttributes (Element elemtype s atts xs) = atts
 
 
--- todo: fix escaped double quote in attr value
+-- parse a string into a list of attributes
 parseAttributes       :: String -> [Attribute]
 parseAttributes ""    = []
 parseAttributes ">"   = []
@@ -127,12 +126,8 @@ getData (RenderCallbackFn a b) = do
 getFn (RenderCallbackFn a b) = b
 
 
-getAttributeAsKey att = do
-    let name = attname att
-    let val = attvalue att
-    name ++ "/" ++ val
-
-
+-- the "no op" function for basic rendering (i.e. render without callback)
+renderNoop :: (String, [Attribute], [Element]) -> RenderCallbackFn (String, [Attribute], [Element]) (String, [Attribute], [Element])
 renderNoop (s, atts, xs) = RenderCallbackFn (s, atts, xs) renderNoop
 
 
@@ -140,6 +135,7 @@ render   :: Element -> String
 render e = render' e renderNoop
 
 
+render' :: Element -> ((String, [Attribute], [Element]) -> RenderCallbackFn (String, [Attribute], [Element]) (String, [Attribute], [Element])) -> String
 render' e fn = do
     let (newe, _) = preprocessElement e Map.empty
     renderElement newe fn
