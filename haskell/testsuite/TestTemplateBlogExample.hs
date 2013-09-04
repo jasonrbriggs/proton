@@ -38,10 +38,7 @@ blogTest = TestCase (do
 
     s <- renderTemplate tmp
     
-    checkFile <- readFile "testsuite/blogexample-result.xhtml"
-    let checkInput = stripWhitespace s
-    let checkOutput = stripWhitespace checkFile
-    assertEqual "Output does not match" checkOutput checkInput
+    checkResult s "testsuite/blogexample-result.xhtml"
     )
 
     

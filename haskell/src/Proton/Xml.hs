@@ -1,23 +1,21 @@
-module Proton.Xml where
-
-
-{- 
-(
+module Proton.Xml (
 Element(..),
 Attribute(..),
 ElementType(..),
 RenderCallbackFn(..),
 containsAttribute,
 copyElement,
+copyElements,
 findAttribute,
 getAttributes,
 getAttributeAsKey,
 getChildren,
 parseXmlFile,
+parseAttributes,
 render,
 render'
 ) where
--}
+
 
 import Data.List (intercalate)
 import qualified Data.Map as Map
@@ -61,7 +59,7 @@ getAttributes (Element elemtype s atts xs) = atts
 
 
 -- todo: fix escaped double quote in attr value
-parseAttributes          :: String -> [Attribute]
+parseAttributes       :: String -> [Attribute]
 parseAttributes ""    = []
 parseAttributes ">"   = []
 parseAttributes " />" = []
@@ -69,21 +67,19 @@ parseAttributes "/>"  = []
 parseAttributes s     = do
     let news = dropWhile (matches [' ', '"']) s
     let (name, maybeValue) = splitOn '=' news
-    let (value, rest) = span (not . matches ['"']) $ dropWhile (matches ['=', '"', '>']) maybeValue
-    let key = name ++ "=" ++ value
-    let newatts = if rest /= "" then parseAttributes (tail rest) else []
-    [Attribute name value 1] ++ newatts
+    let (value, rest) = splitUntilClose maybeValue
+    [Attribute name value 1] ++ (if rest /= "" then parseAttributes (tail rest) else [])
 
 
 -- return the tag name, and then the remaining content of the element
-parseTag :: String -> (String, String)
+parseTag   :: String -> (String, String)
 parseTag s = do
     let (_, remainder) = span (matches ['<','/']) s
     span (not . matches [' ','>', '/']) remainder
 
 
 -- internal xml parser code
-parse :: [String] -> ([Element], [String])
+parse    :: [String] -> ([Element], [String])
 parse [] = ([], [])
 parse (x:xs) = do
     let first = head x
@@ -115,7 +111,7 @@ parse (x:xs) = do
             ([Element Raw x [] []] ++ parsed, remaining)
 
 
-parseXmlFile :: String -> IO Element
+parseXmlFile       :: String -> IO Element
 parseXmlFile fname = do    
    file <- readFile fname
    let sp = splitText file
@@ -140,7 +136,7 @@ getAttributeAsKey att = do
 renderNoop (s, atts, xs) = RenderCallbackFn (s, atts, xs) renderNoop
 
 
-render :: Element -> String
+render   :: Element -> String
 render e = render' e renderNoop
 
 
@@ -149,7 +145,7 @@ render' e fn = do
     renderElement newe fn
 
 
-incrementOccurrences [] occurrences = ([], occurrences)
+incrementOccurrences [] occurrences     = ([], occurrences)
 incrementOccurrences (a:as) occurrences = do
     let (Attribute name val occurrence) = a
 
@@ -207,13 +203,13 @@ renderList [] fn     = ""
 renderList (x:xs) fn = (renderElement x fn) ++ (renderList xs fn)
 
 
-renderAttribute :: Attribute -> String
+renderAttribute                          :: Attribute -> String
 renderAttribute (Attribute name val occ) = do
     if name == "rid" || name == "eid" || name == "aid" 
         then ""
         else " " ++ name ++ "=\"" ++ val ++ "\""
 
 
-renderAttributeList :: [Attribute] -> String
+renderAttributeList    :: [Attribute] -> String
 renderAttributeList [] = ""
 renderAttributeList (x:xs) = renderAttribute x ++ renderAttributeList xs

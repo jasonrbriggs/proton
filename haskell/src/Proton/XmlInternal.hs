@@ -30,6 +30,26 @@ splitOn char s = do
     if (length splitB) > 0 then (splitA, tail splitB)
     else (splitA, splitB)
 
+
+splitUntilClose "" = ("", "")
+splitUntilClose (c:s) = splitUntilClose' s c ""
+
+splitUntilClose' "" untilc first = (first, "")
+splitUntilClose' (c1:s) untilc first = do
+    if s == ""
+        then do
+            if c1 == untilc
+                then (first, "")
+                else (first ++ [c1], "")
+        else do
+            if c1 == untilc && (first == "" || (last first) /= '\\')
+                then (first, s)
+                else do
+                    let c2 = head s
+                    if c2 == untilc && c1 /= '\\'
+                        then (first ++ [c1], tail s)
+                        else splitUntilClose' s untilc (first ++ [c1])
+                
     
 -- split used for XML files, to ensure an xml tag element is a distinct member of the list returned
 splitText :: String -> [String]

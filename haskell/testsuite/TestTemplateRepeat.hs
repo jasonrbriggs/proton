@@ -24,10 +24,7 @@ repeatTest = TestCase (do
 
     s <- renderTemplate tmp
     
-    checkFile <- readFile "testsuite/repeat-result.xhtml"
-    let checkInput = stripWhitespace s
-    let checkOutput = stripWhitespace checkFile
-    assertEqual "Output does not match" checkOutput checkInput
+    checkResult s "testsuite/repeat-result.xhtml"
     )
 
 repeatTest2 = TestCase (do
@@ -42,10 +39,7 @@ repeatTest2 = TestCase (do
 
     s <- renderTemplate tmp
     
-    checkFile <- readFile "testsuite/repeat-result.xhtml"
-    let checkInput = stripWhitespace s
-    let checkOutput = stripWhitespace checkFile
-    assertEqual "Output does not match" checkOutput checkInput
+    checkResult s "testsuite/repeat-result.xhtml"
     )
     
 repeatTestComplex = TestCase (do

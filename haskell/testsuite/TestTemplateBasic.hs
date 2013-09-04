@@ -15,10 +15,7 @@ basicTest = TestCase (do
     tmp <- setAttributeValue tmp "link" "href" "http://www.google.com" 0
     s <- renderTemplate tmp
     
-    checkFile <- readFile "testsuite/basic-result.xhtml"
-    let checkInput = stripWhitespace s
-    let checkOutput = stripWhitespace checkFile
-    assertEqual "Output does not match" checkOutput checkInput
+    checkResult s "testsuite/basic-result.xhtml"
     )
 
 
@@ -32,10 +29,7 @@ basicTest2 = TestCase (do
     tmp <- setAttributeValue tmp "link" "href" "http://www.google.com" 0
     s <- renderTemplate tmp
     
-    checkFile <- readFile "testsuite/basic-result2.xhtml"
-    let checkInput = stripWhitespace s
-    let checkOutput = stripWhitespace checkFile
-    assertEqual "Output does not match" checkOutput checkInput
+    checkResult s  "testsuite/basic-result2.xhtml"
     )
 
 
@@ -49,10 +43,7 @@ basicWithNamespaceTest = TestCase (do
     tmp <- setElementValue tmp "last-modified" "2012-01-02T12:59:59" 2
     s <- renderTemplate tmp
     
-    checkFile <- readFile "testsuite/basic-with-namespace-result.xml"
-    let checkInput = stripWhitespace s
-    let checkOutput = stripWhitespace checkFile
-    assertEqual "Output does not match" checkOutput checkInput
+    checkResult s "testsuite/basic-with-namespace-result.xml"
     )
 
 includeTest = TestCase (do
@@ -65,15 +56,39 @@ includeTest = TestCase (do
     
     s <- renderTemplate tmp
     
-    checkFile <- readFile "testsuite/include-result.xhtml"
-    let checkInput = stripWhitespace s
-    let checkOutput = stripWhitespace checkFile
-    assertEqual "Output does not match" checkOutput checkInput
+    checkResult s "testsuite/include-result.xhtml"
+    )
+
+
+applyTwoTemplates tmp = do
+    tmp <- repeatElement tmp "list" 0 2
+    tmp <- setElementValue tmp "listid" "1" 1
+    tmp <- setElementValue tmp "listid" "2" 2
+    tmp <- setElementValue tmp "listval" "my item A" 1
+    tmp <- setElementValue tmp "listval" "my item B" 2
+    tmp <- setAttributeValue tmp "listid" "id" "1" 1
+    tmp <- setAttributeValue tmp "listid" "id" "2" 2
+    return tmp
+
+
+twoTemplatesTest = TestCase (do
+    tmps <- loadTemplates "testsuite"
+    tmp1 <- getTemplate tmps "testsuite/twotemplates.xml"
+    tmp1 <- applyTwoTemplates tmp1
+    tmp2 <- getTemplate tmps "testsuite/twotemplates.xhtml"
+    tmp2 <- applyTwoTemplates tmp2
+    
+    s1 <- renderTemplate tmp1
+    s2 <- renderTemplate tmp2
+    
+    checkResult s1 "testsuite/twotemplates-result.xml"
+    checkResult s2 "testsuite/twotemplates-result.xhtml"
     )
 
 template_tests = TestList [
         TestLabel "Basic Template Test" basicTest,
         TestLabel "Basic Template Test2" basicTest2,
         TestLabel "Basic Namespace Test" basicWithNamespaceTest,
-        TestLabel "Include Test" includeTest
+        TestLabel "Include Test" includeTest,
+        TestLabel "Two Templates Test" twoTemplatesTest
         ]

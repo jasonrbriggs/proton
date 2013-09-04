@@ -15,10 +15,7 @@ hidingTest = TestCase (do
 
     s <- renderTemplate tmp
     
-    checkFile <- readFile "testsuite/hiding-result.xhtml"
-    let checkInput = stripWhitespace s
-    let checkOutput = stripWhitespace checkFile
-    assertEqual "Output does not match" checkOutput checkInput
+    checkResult s "testsuite/hiding-result.xhtml"
     )
 
     

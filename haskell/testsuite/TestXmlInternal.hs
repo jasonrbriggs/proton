@@ -62,10 +62,28 @@ splitTextTest = TestCase (do
     )
 
 
+splitUntilCloseTest = TestCase (do
+    let (splitA1, splitB1) = splitUntilClose ""
+    let (splitA2, splitB2) = splitUntilClose "\"abc def\""
+    let (splitA3, splitB3) = splitUntilClose "\"abc def\" id=\"blah\""
+    let (splitA4, splitB4) = splitUntilClose "\"abc\\\"def\\\"\" id=\"blah\""
+    let (splitA5, splitB5) = splitUntilClose "'abc\\'def\\'' id=\"blah\""
+    let (splitA6, splitB6) = splitUntilClose "\"\">"
+    
+    assertEqual "Split 1 failed" (splitA1, splitB1) ("", "")
+    assertEqual "Split 2 failed" (splitA2, splitB2) ("abc def", "")
+    assertEqual "Split 3 failed" (splitA3, splitB3) ("abc def", " id=\"blah\"")
+    assertEqual "Split 4 failed" (splitA4, splitB4) ("abc\\\"def\\\"", " id=\"blah\"")
+    assertEqual "Split 5 failed" (splitA5, splitB5) ("abc\\'def\\'", " id=\"blah\"")
+    assertEqual "Split 6 failed" (splitA6, splitB6) ("", ">")
+    )
+
+
 xml_tests = TestList [TestLabel "Matches Test" matchesTest,
                       TestLabel "Whitespace Test" isWhitespaceTest,
                       TestLabel "Span Test 1" spanUntilTest1,
                       TestLabel "Span Test 2" spanUntilTest2,
                       TestLabel "Split On Test 1" splitOnTest1,
                       TestLabel "Split On Test 2" splitOnTest2,
-                      TestLabel "Split Text Test" splitTextTest]
+                      TestLabel "Split Text Test" splitTextTest,
+                      TestLabel "Split Until Close Test" splitUntilCloseTest]

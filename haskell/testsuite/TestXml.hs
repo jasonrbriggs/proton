@@ -5,15 +5,16 @@ import Test.HUnit
 import Proton.Xml
 import Proton.XmlTypes
 
+import Utils
+
 basicParseTest = TestCase (do
     let fname = "testsuite/basic.xhtml"
     f <- readFile fname
     x <- parseXmlFile fname
     let s = render x
 
-    unprocessed <- readFile "testsuite/basic-unprocessed-result.xhtml"
-
-    assertEqual "Rendered xml should be the same as source" unprocessed s)
+    checkResult s "testsuite/basic-unprocessed-result.xhtml"
+    )
 
 containsAttributeTest1 = TestCase (do
     let notfound1 = containsAttribute "test" []

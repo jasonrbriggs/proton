@@ -1,19 +1,15 @@
-module Proton.Template 
-where
-
-    {-
-    (
-    Template(..),
-    setElementValue,
-    setElementValues,
-    setAttributeValue,
-    repeatElement,
-    hideElement,
-    loadTemplates,
-    getTemplate,
-    renderTemplate
-    ) 
-    -}
+module Proton.Template (
+Template(..),
+setElementValue,
+setElementValues,
+setAttributeValue,
+repeatElement,
+hideElement,
+loadTemplates,
+getTemplate,
+include,
+renderTemplate
+) where
 
 
 import qualified Data.Map as Map
