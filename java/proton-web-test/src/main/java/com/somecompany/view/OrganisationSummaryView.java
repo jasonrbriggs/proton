@@ -14,32 +14,22 @@ import proton.utils.annotation.TemplateView;
 @TemplateView(suffix = "Summary")
 public class OrganisationSummaryView {
 
-    private String name;
-    private String orgUnitId;
+    private Organisation org;
     private String viewHref;
     private String editHref;
 
     public OrganisationSummaryView(Organisation organisation) {
-        this.name = organisation.getName();
-        this.orgUnitId = organisation.getOrgUnitId();
-    }
-
-    public void apply(Organisation organisation) {
-        organisation.setName(getName());
+        this.org = organisation;
     }
 
     @TemplateInfo(eid = "orgUnitName", aid="orgUnitName", attr = "value")
     public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+        return org.getName();
     }
 
     @TemplateInfo(eid = "orgUnitId", aid = "orgUnitId", attr = "value")
     public String getOrgUnitId() {
-        return orgUnitId;
+        return org.getOrgUnitId();
     }
 
     public void setViewHref(String viewHref) {

@@ -4,23 +4,51 @@ package com.somecompany.model;
  *
  * @author Jason R Briggs
  */
-public interface Address {
+public class Address {
 
-    String getAddrLine1();
+    private String addrLine1;
+    private String addrLine2;
+    private String city;
+    private Country country;
+    private String postcode;
 
-    String getAddrLine2();
+    public String getAddrLine1() {
+        return addrLine1;
+    }
 
-    String getCity();
+    public String getAddrLine2() {
+        return addrLine2;
+    }
 
-    Country getCountry();
+    public String getCity() {
+        return city;
+    }
 
-    String getPostcode();
+    public Country getCountry() {
+        return country;
+    }
 
-    void setAddrLine1(String addrLine1);
+    public String getPostcode() {
+        return postcode;
+    }
 
-    void setAddrLine2(String addrLine2);
+    public void setAddrLine1(String addrLine1) {
+        this.addrLine1 = addrLine1;
+    }
 
-    void setCity(String city);
+    public void setAddrLine2(String addrLine2) {
+        this.addrLine2 = addrLine2;
+    }
 
-    void setPostcode(String postcode);
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public void setCountry(Country country) {
+        this.country = country;
+    }
+
+    public void setPostcode(String postcode) {
+        this.postcode = postcode;
+    }
 }

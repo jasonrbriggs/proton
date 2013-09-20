@@ -144,12 +144,10 @@ public class TemplateHelper {
         if (classAnnotation == null || obj.getClass().isAnnotationPresent(TemplateView.class)) {
             return obj.getClass().getMethods();
         }
-        else {
-            for (int i = 0; i < obj.getClass().getGenericInterfaces().length; i++) {
-                Class iface = (Class) obj.getClass().getGenericInterfaces()[i];
-                if (iface.isAnnotationPresent(TemplateView.class)) {
-                    return iface.getMethods();
-                }
+        for (int i = 0; i < obj.getClass().getGenericInterfaces().length; i++) {
+            Class iface = (Class) obj.getClass().getGenericInterfaces()[i];
+            if (iface.isAnnotationPresent(TemplateView.class)) {
+                return iface.getMethods();
             }
         }
         return null;

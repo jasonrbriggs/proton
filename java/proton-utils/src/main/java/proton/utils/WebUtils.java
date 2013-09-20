@@ -21,9 +21,6 @@ public final class WebUtils {
         if (request.getPathInfo() != null && request.getPathInfo().startsWith("/")) {
             return request.getPathInfo().substring(1);
         }
-        else {
-            return request.getPathInfo();
-        }
+        return request.getPathInfo();
     }
-
 }

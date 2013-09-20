@@ -40,3 +40,6 @@ MANIFEST
 *.tmproj
 
 .DS_Store
+.classpath
+.settings
+.project

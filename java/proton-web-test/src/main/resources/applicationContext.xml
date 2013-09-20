@@ -6,8 +6,8 @@
 		<property name="path" value="templates" />
 	</bean>
 
-	<bean id="organisationService" class="com.somecompany.service.OrganisationServiceImpl" />
+	<bean id="organisationService" class="com.somecompany.service.OrganisationService" />
 
-	<bean id="refDataService" class="com.somecompany.service.RefDataServiceImpl" />
+	<bean id="refDataService" class="com.somecompany.service.RefDataService" />
 	
 </beans>

@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.google.code.proton-te</groupId>
+	<groupId>proton</groupId>
 	<artifactId>proton</artifactId>
 	<packaging>jar</packaging>
 	<version>0.5-SNAPSHOT</version>
@@ -8,12 +8,12 @@
 
 	<description>A simple, "code-less" XML/XHTML templating engine</description>
 
-	<url>http://code.google.com/p/proton-te/</url>
+	<url>https://github.com/kwoli/proton</url>
 	
 	<scm>
-        <url>https://proton-te.googlecode.com/hg/java/proton/</url>
-        <connection>scm:hg:https://proton-te.googlecode.com/hg/java/proton/</connection>
-        <developerConnection>scm:hg:https://proton-te.googlecode.com/hg/java/proton/</developerConnection>
+        <url>https://github.com/kwoli/proton</url>
+        <connection>scm:git:https://github.com/kwoli/proton</connection>
+        <developerConnection>scm:git:https://github.com/kwoli/proton</developerConnection>
     </scm>
 	
 	<licenses>
@@ -35,7 +35,13 @@
 		<dependency>
 			<groupId>xom</groupId>
 			<artifactId>xom</artifactId>
-			<version>1.1d2</version>
+			<version>1.2.5</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>xalan</groupId>
+			<artifactId>xalan</artifactId>
+			<version>2.7.1</version>
 		</dependency>
 	</dependencies>
 	
@@ -58,15 +64,15 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.0.2</version>
 				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
+					<source>1.6</source>
+					<target>1.6</target>
 				</configuration>
 			</plugin>
 			
 			<plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.0-beta-7</version>
+                <version>2.1</version>
             </plugin>
 		</plugins>
 	</build>

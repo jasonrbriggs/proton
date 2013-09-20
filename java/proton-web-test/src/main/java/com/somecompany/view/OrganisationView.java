@@ -26,11 +26,6 @@ public class OrganisationView extends OrganisationSummaryView {
         this.countryCode = org.getAddress().getCountry().getCode();
     }
 
-    public void apply(Organisation organisation) {
-        super.apply(organisation);
-        address.apply(organisation.getAddress());
-    }
-
     @TemplateInfo
     public AddressView getAddress() {
         return address;

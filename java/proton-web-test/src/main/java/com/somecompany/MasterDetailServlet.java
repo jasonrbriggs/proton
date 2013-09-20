@@ -44,6 +44,7 @@ public class MasterDetailServlet extends ContextAwareServlet {
         refDataService = (RefDataService) context.getBean("refDataService");
     }
 
+    @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
             Organisation org = getOrganisation(request);
@@ -75,25 +76,20 @@ public class MasterDetailServlet extends ContextAwareServlet {
         }
     }
 
+    @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Organisation org = getOrganisation(request);
 
-        try {
-            TemplateHelper templateHelper = new TemplateHelper();
+        org.setName(request.getParameter("orgUnitName"));
+        org.getAddress().setAddrLine1(request.getParameter("addr1"));
+        org.getAddress().setAddrLine2(request.getParameter("addr2"));
+        org.getAddress().setCity(request.getParameter("city"));
+        org.getAddress().setCountry(refDataService.getCountry(request.getParameter("country")));
+        org.getAddress().setPostcode(request.getParameter("postcode"));
 
-            OrganisationView orgView = new OrganisationView(org);
+        organisationService.updateOrganisation(org);
 
-            orgView.apply(org);
-
-            Template tmp = getSingleDisplay(request, response, orgView, false);
-            response.getWriter().write(tmp.toString());
-        }
-        catch (HttpException he) {
-            response.sendError(he.getCode(), he.getMessage());
-        }
-        catch (Exception e) {
-            throw new ServletException(e);
-        }
+        doGet(request, response);
     }
 
     private Organisation getOrganisation(HttpServletRequest request) {
@@ -114,7 +110,7 @@ public class MasterDetailServlet extends ContextAwareServlet {
 
     private Template getListDisplay(HttpServletRequest request, HttpServletResponse response, OrganisationView org) throws Exception {
         Template tmp;
-        
+
         if (request.getParameter("raw") != null) {
             response.setContentType("text/xml");
             tmp = templates.get("raw-list.xml");
@@ -124,7 +120,7 @@ public class MasterDetailServlet extends ContextAwareServlet {
             tmp = templates.get("list.xhtml");
         }
 
-        Page page = getPage("Organisations", tmp);
+        Page page = getPage(request.getContextPath(), "Organisations", tmp);
 
         OrgsView orgsView = new OrgsView();
         List<Organisation> organisations = organisationService.getOrganisations();
@@ -150,7 +146,9 @@ public class MasterDetailServlet extends ContextAwareServlet {
 
     private Template getSingleDisplay(HttpServletRequest request, HttpServletResponse response, OrganisationView org, boolean raw) throws Exception {
         Template tmp;
-        
+
+        String basePath = request.getContextPath();
+
         if (raw) {
             tmp = templates.get("raw.xml");
             response.setContentType("text/xml");
@@ -162,10 +160,10 @@ public class MasterDetailServlet extends ContextAwareServlet {
 
         Page page;
         if (org == null) {
-            page = getPage("Add Organisation", tmp);
+            page = getPage(basePath, "Add Organisation", tmp);
         }
         else {
-            page = getPage("Edit Organisation", tmp);
+            page = getPage(basePath, "Edit Organisation", tmp);
         }
 
         List<Country> countries = refDataService.getCountries();
@@ -177,10 +175,10 @@ public class MasterDetailServlet extends ContextAwareServlet {
         return tmp;
     }
 
-    private Page getPage(String title, Template tmp) throws Exception {
+    private Page getPage(String basePath, String title, Template tmp) throws Exception {
         Page page = new Page(title);
-        page.addMenuItem(new MenuItem("/test1", "Test 1"));
-        page.addMenuItem(new MenuItem("/test2", "Test 2"));
+        page.addMenuItem(new MenuItem(basePath + "/test1", "Test 1"));
+        page.addMenuItem(new MenuItem(basePath + "/test2", "Test 2"));
 
         tmp.include("menu", "menu.xhtml");
 

@@ -10,20 +10,16 @@ import proton.utils.annotation.TemplateView;
  */
 @TemplateView
 public class CountryView {
-    private String country;
+    private Country country;
     private String selected = "";
 
     public CountryView(Country country) {
-        this.country = country.getCode();
+        this.country = country;
     }
 
     @TemplateInfo(eid = "country", aid="country", attr = "value")
     public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
+        return country.getCode();
     }
 
     @TemplateInfo(aid = "country", attr = "selected")
@@ -34,6 +30,4 @@ public class CountryView {
     public void setSelected(String selected) {
         this.selected = selected;
     }
-
-
 }

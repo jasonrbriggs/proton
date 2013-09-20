@@ -4,16 +4,65 @@ package com.somecompany.model;
  *
  * @author Jason R Briggs
  */
-public interface Organisation extends Comparable<Organisation> {
+public class Organisation implements Comparable<Organisation> {
 
-    int getId();
+    private int id;
 
-    String getName();
+    private String orgUnitId;
 
-    String getOrgUnitId();
+    private String name;
 
-    Address getAddress();
+    private Address address;
 
-    void setName(String name);
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getOrgUnitId() {
+        return orgUnitId;
+    }
+
+    public void setOrgUnitId(String orgUnitId) {
+        this.orgUnitId = orgUnitId;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || !(obj instanceof Organisation)) {
+            return false;
+        }
+        Organisation that = (Organisation) obj;
+        return this.getId() == that.getId();
+    }
+
+    @Override
+    public int compareTo(Organisation that) {
+        return this.getOrgUnitId().compareTo(that.getOrgUnitId());
+    }
 
 }

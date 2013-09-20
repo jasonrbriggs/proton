@@ -1,5 +1,7 @@
 package com.somecompany.service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.somecompany.model.Organisation;
@@ -8,12 +10,24 @@ import com.somecompany.model.Organisation;
  *
  * @author Jason R Briggs
  */
-public interface OrganisationService {
+public class OrganisationService {
 
-    List<Organisation> getOrganisations();
+    public Organisation getOrganisation(String orgUnitId) {
+        if (StaticData.orgData.containsKey(orgUnitId)) {
+            return StaticData.orgData.get(orgUnitId);
+        }
+        
+        return null;
+    }
 
-    Organisation getOrganisation(String orgUnitId);
+    public List<Organisation> getOrganisations() {
+        ArrayList<Organisation> rtn = new ArrayList<Organisation>(StaticData.orgData.values());
+        Collections.sort(rtn);
+        return rtn;
+    }
 
-    void updateOrganisation(Organisation org);
+    public void updateOrganisation(Organisation org) {
+        StaticData.orgData.put(org.getOrgUnitId(), org);
+    }
 
 }
