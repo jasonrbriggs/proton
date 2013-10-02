@@ -379,7 +379,7 @@ public class Template {
         }
 
         try {
-            Serializer serializer = new Serializer(outputStream, "UTF-8");
+            Serializer serializer = new Serializer(outputStream, "utf-8");
             serializer.write(doc);
         }
         catch (Exception e) {

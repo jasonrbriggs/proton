@@ -1,5 +1,7 @@
 package proton;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +45,11 @@ public class XMLLoader {
             XMLReader xmlReader = XMLReaderFactory.createXMLReader();
             xmlReader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             Builder parser = new Builder(xmlReader);
-            Document doc = parser.build(getClass().getClassLoader().getResourceAsStream(fpath));
+            InputStream is = getClass().getClassLoader().getResourceAsStream(fpath);
+            if (is == null) {
+                is = new FileInputStream(fpath);
+            }
+            Document doc = parser.build(is);
 
             loaded.put(fpath, doc);
         }
