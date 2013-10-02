@@ -38,8 +38,11 @@ target
 .idea
 MANIFEST
 *.tmproj
+*.class
 
 .DS_Store
 .classpath
 .settings
 .project
+
+.lein-*
