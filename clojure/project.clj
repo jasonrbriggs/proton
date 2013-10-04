@@ -9,4 +9,6 @@
     :java-source-paths ["src/java"]        
 
     :dependencies [[org.clojure/clojure "1.5.1"]
-                    [xom/xom "1.2.5"]])
+                    [xom/xom "1.2.5"]
+                    [org.clojure/tools.trace "0.7.5"]
+                    [clojure-debug-build "1.3.0-SNAPSHOT"]])
