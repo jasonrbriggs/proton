@@ -288,6 +288,7 @@ class Template(object):
 
         if elems and index < len(elems):
             elem = elems[index]
+            print('>>>>>>>>>>> hiding. elem parent is %s' % elem.parent)
             elem.parent.children.remove(elem)
 
     def repeat(self, rid, count, index=0):
@@ -334,9 +335,12 @@ class Template(object):
             if replacement_type in (Element, TextElement):
                 self.check_element(replacement, True)
                 elem.parent.children.insert(current_pos, replacement)
+                replacement.parent = elem.parent
             elif replacement_type == Template:
                 for child in replacement.root.children:
                     elem.parent.children.insert(current_pos, child)
+                    child.parent = elem.parent
+                    print('>>>>>>>>>>>> GOT HERE set child parent %s to %s' % (child, elem.parent))
                     current_pos += 1
                 self.__merge_ids(self.__element_ids, replacement.__element_ids)
                 self.__merge_ids(self.__attrib_ids, replacement.__attrib_ids)

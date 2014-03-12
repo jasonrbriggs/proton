@@ -51,3 +51,20 @@ class TestHidingFunctionality(unittest.TestCase):
         self.assert_(anchors[1].attrib['href'] == '/transfer')
         self.assert_(anchors[2].attrib['href'] == '/bills')
 
+    def test_hiding3(self):
+        tmp = template.get_template('hiding3.xhtml')
+        tmp.set_value('title', 'Hiding Xhtml Page', '*')
+
+        tmp2 = template.get_template('hiding-include.xhtml')
+
+        tmp.replace('replaced-element', tmp2)
+
+        tmp.set_value('not-hidden', 'Not hidden content')
+        tmp.hide('hidden-element')
+
+        out = str(tmp)
+        print(out)
+        et = etree.fromstring(out)
+
+        self.assert_(et.find('body/span') == None, 'span should have been removed')
+
