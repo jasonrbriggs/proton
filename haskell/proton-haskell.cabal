@@ -1,0 +1,11 @@
+name:           proton-haskell
+version:        0.1
+cabal-version:  >=1.2
+build-type:     Simple
+author:         jasonbriggs
+
+library
+  hs-source-dirs:  src
+  build-depends:   base >= 4, containers, MissingH, filepath, directory
+  ghc-options:     -Wall
+

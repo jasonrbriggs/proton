@@ -7,8 +7,9 @@ import Proton.XmlTypes
 matches :: [Char] -> Char -> Bool
 matches [] _ = False
 matches (x:xs) c = do
-   if x == c then True
-   else matches xs c
+   if x == c 
+        then True
+        else matches xs c
    
 
 isWhitespace :: Char -> Bool

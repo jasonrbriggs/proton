@@ -15,7 +15,7 @@ import qualified Data.Map as Map
 import Data.Maybe as Mb
 import System.Directory
 import System.FilePath
-import Data.String.Utils
+import Data.List
 
 import Debug.Trace
 
@@ -51,7 +51,7 @@ data Templates = Templates { tmpl_map :: (Map.Map String Template) }
 
 
 validExt :: String -> Bool
-validExt f = (endswith "xhtml" f) || (endswith "xml" f)
+validExt f = (isSuffixOf "xhtml" f) || (isSuffixOf "xml" f)
 
 
 getValidFiles :: FilePath -> IO [String]

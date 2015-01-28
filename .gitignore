@@ -46,3 +46,5 @@ MANIFEST
 .project
 
 .lein-*
+
+.dist-buildwrapper
