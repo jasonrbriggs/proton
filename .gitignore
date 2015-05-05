@@ -39,6 +39,7 @@ target
 MANIFEST
 *.tmproj
 *.class
+dist
 
 .DS_Store
 .classpath
