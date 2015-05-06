@@ -29,12 +29,9 @@ renderTemplate
 ) where
 
 import qualified Data.Map as Map
-import Data.Maybe as Mb
 import System.Directory
 import System.FilePath
 import Data.List
-
-import Debug.Trace
 
 import Proton.Xml as Xml
 import Proton.XmlTypes as XmlTypes
@@ -50,7 +47,7 @@ data DataValue = DataValue { dval :: String, dpos :: Integer }
 data DataMap = DataMap { eidMap :: Map.Map String [DataValue], aidMap :: Map.Map String [DataValue] }
 
 instance Show DataMap where
-    show (DataMap eidMap aidMap) = "DataMap: " ++ show eidMap ++ "," ++ show aidMap
+    show (DataMap eid aid) = "DataMap: " ++ show eid ++ "," ++ show aid
 
 
 data Template = Template { xml :: XmlTypes.Element, dataMap :: DataMap, tmpsref :: Templates }
@@ -58,7 +55,7 @@ data Template = Template { xml :: XmlTypes.Element, dataMap :: DataMap, tmpsref 
 
 
 instance Show Template where
-  show (Template xml dataMap tmps) = "Template: " ++ show dataMap
+  show (Template _ dm _) = "Template: " ++ show dm
   show (NoTemplate) = "NoTemplate"
   
   
@@ -87,8 +84,8 @@ loadTemplates dir = do
 loadTemplates' :: Templates -> [String] -> IO Templates
 loadTemplates' tmps [] = return tmps
 loadTemplates' tmps (s:ss) = do
-    tmps <- loadTemplate tmps s
-    loadTemplates' tmps ss
+    newTmps <- loadTemplate tmps s
+    loadTemplates' newTmps ss
 
 
 loadTemplate :: Templates -> String -> IO Templates
@@ -111,13 +108,13 @@ getTemplate tmps name = do
 
 setElementValue :: Template -> String -> String -> Integer -> IO Template
 setElementValue tmp eid value pos = do
-    let (dm, em, am, x, tmps, _, _, _, _) = extractAttributes tmp
+    let (_, em, am, x, tmps, _, _, _, _) = extractAttributes tmp
     let elemlist = Map.findWithDefault [] eid em
     let newem = Map.insert eid (elemlist ++ [DataValue value pos]) em
     let newdm = DataMap newem am
     return (Template x newdm tmps)
 
-
+extractAttributes :: Template -> (DataMap, Map.Map String [DataValue], Map.Map String [DataValue], XmlTypes.Element, Templates, ElementType, String, [Attribute], [Element])
 extractAttributes tmp = do
     let templateXml = xml tmp
     let dm = dataMap tmp
@@ -127,8 +124,8 @@ extractAttributes tmp = do
 
 setElementValues :: Template -> String -> [String] -> IO Template
 setElementValues tmp eid values = do
-    tmp <- repeatElement tmp eid 0 (toInteger $ length values)
-    setElementValues' tmp eid values 1
+    newTmp <- repeatElement tmp eid 0 (toInteger $ length values)
+    setElementValues' newTmp eid values 1
 
 
 setElementValues' :: Template -> String -> [String] -> Integer -> IO Template
@@ -139,22 +136,22 @@ setElementValues' tmp eid (s:ss) pos = do
 
 
 setAttributeValue :: Template -> String -> String -> String -> Integer -> IO Template
-setAttributeValue tmp aid attname value pos = do
-    let (dm, em, am, x, tmps, _, _, _, _) = extractAttributes tmp
+setAttributeValue tmp aid att value pos = do
+    let (_, em, am, x, tmps, _, _, _, _) = extractAttributes tmp
     let attlist = Map.findWithDefault [] aid am
-    let newam = Map.insert aid (attlist ++ [DataNameValue attname value pos]) am
+    let newam = Map.insert aid (attlist ++ [DataNameValue att value pos]) am
     let newdm = DataMap em newam
     return (Template x newdm tmps)
 
 
 include :: Template -> String -> String -> Integer -> IO Template
-include tmp eid template_name pos = do
+include tmp eid templateName pos = do
     let (dm, _, _, _, tmps, elemtype, s, atts, xs) = extractAttributes tmp
-    included_tmp <- getTemplate tmps template_name
-    case included_tmp of
+    includedTmp <- getTemplate tmps templateName
+    case includedTmp of
         NoTemplate -> return tmp
         _          -> do
-                let (Element _ _ _ include_xs) = xml included_tmp
+                let (Element _ _ _ include_xs) = xml includedTmp
                 let (newxs, _) = includeSearch' eid include_xs pos 0 xs
                 return $ Template (Element elemtype s atts newxs) dm tmps
 
@@ -164,7 +161,7 @@ include' x eid include_xs pos current = do
     let (Element elemtype s atts xs) = x
     let eidatt = findAttribute "eid" atts
     case eidatt of
-        (Attribute name val occ) ->
+        (Attribute _ val _) ->
             if val == eid
                 then do
                     let newcurrent = current + 1
@@ -182,7 +179,7 @@ include' x eid include_xs pos current = do
 
 
 includeSearch' :: String -> [Element] -> Integer -> Integer -> [Element] -> ([Element], Integer)
-includeSearch' eid include_xs pos current [] = ([], current)
+includeSearch' _ _ _ current [] = ([], current)
 includeSearch' eid include_xs pos current (x:xs) = do
     let (xs1, newcurrent) = include' x eid include_xs pos current
     let (xs2, newcurrent2) = includeSearch' eid include_xs pos newcurrent xs
@@ -192,7 +189,7 @@ includeSearch' eid include_xs pos current (x:xs) = do
 repeatElement :: Template -> String -> Integer -> Integer -> IO Template
 repeatElement tmp rid pos count = do
     let (dm, _, _, _, tmps, elemtype, s, atts, xs) = extractAttributes tmp
-    let (newxs, current) = repeatElements rid pos 0 count xs
+    let (newxs, _) = repeatElements rid pos 0 count xs
     return $ Template (Element elemtype s atts newxs) dm tmps
 
 
@@ -209,7 +206,7 @@ repeatElement' x rid pos current count = do
     let (Element elemtype s atts xs) = x
     let ridatt = findAttribute "rid" atts
     case ridatt of
-        (Attribute name val occ) ->
+        (Attribute _ val _) ->
             if val == rid
                 then do
                     let newcurrent = current + 1
@@ -227,7 +224,7 @@ repeatElement' x rid pos current count = do
 
 
 repeatElementCopy :: Element -> Integer -> [Element]
-repeatElementCopy x 0 = []
+repeatElementCopy _ 0 = []
 repeatElementCopy x count =
     copyElement x : repeatElementCopy x (count - 1)
 
@@ -237,17 +234,17 @@ hideElement tmp eid pos = do
     let (Element elemtype s atts xs) = xml tmp
     let dm = dataMap tmp
     let tmps = tmpsref tmp
-    let (newxs, current) = hideElements eid pos 0 xs
+    let (newxs, _) = hideElements eid pos 0 xs
     return $ Template (Element elemtype s atts newxs) dm tmps
 
 
 hideElements :: String -> Integer -> Integer -> [Element] -> ([Element], Integer)
-hideElements eid pos current [] = ([], current)
+hideElements _ _ current [] = ([], current)
 hideElements eid pos current (e:es) = do
-    let (Element elemtype s atts xs) = e
+    let (Element _ _ atts _) = e
     let eidatt = findAttribute "eid" atts
     case eidatt of
-        (Attribute name val occ) ->
+        (Attribute _ val _) ->
             if val == eid
                 then do
                     let newcurrent = current + 1
@@ -259,7 +256,7 @@ hideElements eid pos current (e:es) = do
 
 
 hideElement' :: String -> Integer -> Integer -> [Element] -> ([Element], Integer)
-hideElement' eid pos current [] = ([], current)
+hideElement' _ _ current [] = ([], current)
 hideElement' eid pos current (e:es) = do
      let (Element elemtype s atts xs) = e
      let (newxs, newcurrent) = hideElements eid pos current xs
@@ -293,7 +290,7 @@ renderReplaceEID dm xs eidatt = do
 
 
 renderReplaceEID' :: Integer -> [Element] -> [DataValue] -> [Element]
-renderReplaceEID' occurrence xs [] = xs
+renderReplaceEID' _ xs [] = xs
 renderReplaceEID' occurrence xs (e:es) = do
     let pos = dpos e
     if occurrence == pos || pos <= 0
@@ -310,7 +307,7 @@ renderReplaceAID dm atts aidatt = do
 
 
 renderReplaceAID' :: Integer -> [Attribute] -> [DataValue] -> [Attribute]
-renderReplaceAID' occurrence atts [] = atts
+renderReplaceAID' _ atts [] = atts
 renderReplaceAID' occurrence atts (a:as) = do
     let pos = dnpos a
     let name = dnname a

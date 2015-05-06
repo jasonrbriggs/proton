@@ -17,8 +17,6 @@
 
 module Proton.XmlInternal where
 
-import Proton.XmlTypes
-
 
 -- does the char in arg #2 match any of the chars in arg #1?
 matches :: String -> Char -> Bool
@@ -33,7 +31,7 @@ isWhitespace = matches " \n\t\r"
 
 -- same as span, except the first list is loaded with elements up-to-and-including the match
 spanUntil :: (a -> Bool) -> [a] -> ([a], [a])
-spanUntil chk [] = ([], [])
+spanUntil _ [] = ([], [])
 spanUntil chk (x:xs) =
     if chk x 
         then ([ x ], xs)
@@ -59,7 +57,7 @@ splitUntilClose (c:s) = splitUntilClose' s c ""
 -- internal function taking a string to split, a start delimiting character, and the first part of the tuple (used for appending)
 -- returns a tuple of two strings
 splitUntilClose' :: String -> Char -> String -> (String, String)
-splitUntilClose' "" untilc first = (first, "")
+splitUntilClose' "" _ first = (first, "")
 splitUntilClose' (c1 : s) untilc first
     | s == "" =
           if c1 == untilc 

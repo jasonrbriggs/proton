@@ -33,7 +33,6 @@ render'
 ) where
 
 
-import Data.List (intercalate)
 import qualified Data.Map as Map
 
 import Proton.XmlTypes
@@ -41,7 +40,7 @@ import Proton.XmlInternal
 
 
 containsAttribute :: String -> [Attribute] -> Bool
-containsAttribute name [] = False
+containsAttribute _ [] = False
 containsAttribute name (x:xs) = do
     let aname = attname x
     (aname == name) || containsAttribute name xs
@@ -56,7 +55,7 @@ copyElements = map copyElement
 
 
 findAttribute :: String -> [Attribute] -> Attribute
-findAttribute name [] = NoAttribute
+findAttribute _ [] = NoAttribute
 findAttribute name (x:xs) = do
     let aname = attname x
     if aname == name then x
@@ -64,11 +63,11 @@ findAttribute name (x:xs) = do
 
 
 getChildren :: Element -> [Element]
-getChildren (Element elemtype s atts xs) = xs
+getChildren (Element _ _ _ xs) = xs
 
 
 getAttributes :: Element -> [Attribute]
-getAttributes (Element elemtype s atts xs) = atts
+getAttributes (Element _ _ atts _) = atts
 
 
 -- parse a string into a list of attributes
@@ -134,12 +133,14 @@ parseXmlFile fname = do
    return (Element Root "" [] parsed)
 
 
-getData (RenderCallbackFn a b) = do
+getData :: (RenderCallbackFn (String, [Attribute], [Element]) b) -> (String, [Attribute], [Element])
+getData (RenderCallbackFn a _) = do
     let (tag, atts, xs) = a
     (tag, atts, xs)
 
 
-getFn (RenderCallbackFn a b) = b
+getFn :: RenderCallbackFn a b -> b -> RenderCallbackFn a b
+getFn (RenderCallbackFn _ b) = b
 
 
 -- the "no op" function for basic rendering (i.e. render without callback)
@@ -160,7 +161,7 @@ render' e fn = do
 incrementOccurrences :: [Attribute] -> Map.Map String Integer -> ([Attribute], Map.Map String Integer)
 incrementOccurrences [] occurrences     = ([], occurrences)
 incrementOccurrences (a:as) occurrences = do
-    let (Attribute name val occurrence) = a
+    let (Attribute name val _) = a
 
     if name == "eid" || name == "aid"
         then do
@@ -219,7 +220,8 @@ renderList xs fn = foldr (\ x -> (++) (renderElement x fn)) "" xs
 
 
 renderAttribute :: Attribute -> String
-renderAttribute (Attribute name val occ) =
+renderAttribute NoAttribute = ""
+renderAttribute (Attribute name val _) =
     if name == "rid" || name == "eid" || name == "aid" 
         then ""
         else " " ++ name ++ "=\"" ++ val ++ "\""
