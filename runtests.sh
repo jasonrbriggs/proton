@@ -4,7 +4,9 @@ check_result() {
     STATUS=$?
     TEST=$1
     if [ "$STATUS" != "0" ]; then
+        echo "============================================="
         echo "$TEST tests failed"
+        echo "============================================="
         exit $STATUS
     fi
 }
@@ -31,3 +33,8 @@ cd ../proton
 mvn clean install
 check_result "Java"
 cd ../..
+
+cd clojure
+lein test
+check_result "Clojure"
+cd ..
