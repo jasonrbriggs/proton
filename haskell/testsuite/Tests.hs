@@ -11,13 +11,6 @@ import TestTemplateRepeat
 import TestTemplateHiding
 import TestTemplateBlogExample
 
-{-
-main = do
-    runTestTT TestTemplateBasic.template_tests
-    runTestTT TestTemplateRepeat.template_tests
-    runTestTT TestTemplateHiding.template_tests
-    runTestTT TestTemplateBlogExample.template_tests
--}
   
 tests = hUnitTestToTests $ TestList (TestXml.xmlTests ++
                                      TestXmlInternal.xmlTests ++

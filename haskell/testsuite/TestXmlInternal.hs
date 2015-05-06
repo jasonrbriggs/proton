@@ -2,9 +2,9 @@ module TestXmlInternal where
 
 import Test.HUnit
 
-import Proton.XmlTypes
-import Proton.XmlInternal
-import Proton.Xml
+import Text.Proton.XmlTypes
+import Text.Proton.XmlInternal
+import Text.Proton.Xml
 
 
 matchesTest = TestCase (do

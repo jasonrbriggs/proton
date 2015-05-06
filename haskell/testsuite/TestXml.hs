@@ -2,8 +2,8 @@ module TestXml where
 
 import Test.HUnit
 
-import Proton.Xml
-import Proton.XmlTypes
+import Text.Proton.Xml
+import Text.Proton.XmlTypes
 
 import Utils
 

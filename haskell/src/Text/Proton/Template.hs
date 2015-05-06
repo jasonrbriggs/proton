@@ -15,7 +15,7 @@
 
 -}
 
-module Proton.Template (
+module Text.Proton.Template (
 Template(..),
 setElementValue,
 setElementValues,
@@ -33,8 +33,8 @@ import System.Directory
 import System.FilePath
 import Data.List
 
-import Proton.Xml as Xml
-import Proton.XmlTypes as XmlTypes
+import Text.Proton.Xml as Xml
+import Text.Proton.XmlTypes as XmlTypes
 
 
 data DataValue = DataValue { dval :: String, dpos :: Integer }

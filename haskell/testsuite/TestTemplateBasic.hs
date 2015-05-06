@@ -2,7 +2,7 @@ module TestTemplateBasic where
 
 import Test.HUnit
 
-import Proton.Template
+import Text.Proton.Template
 import Utils
 
 

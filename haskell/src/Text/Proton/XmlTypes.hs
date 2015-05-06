@@ -15,7 +15,7 @@
 
 -}
 
-module Proton.XmlTypes where
+module Text.Proton.XmlTypes where
 
     
 data Attribute = Attribute { attname :: String, attvalue :: String, occ :: Integer }

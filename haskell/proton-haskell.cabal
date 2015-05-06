@@ -13,7 +13,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Proton.Template, Proton.Xml, Proton.XmlInternal, Proton.XmlTypes
+  exposed-modules:     Text.Proton.Template, Text.Proton.Xml, Text.Proton.XmlInternal, Text.Proton.XmlTypes
   ghc-options:         -Wall
   -- other-modules:       
   -- other-extensions:    

@@ -15,7 +15,7 @@
 
 -}
 
-module Proton.XmlInternal where
+module Text.Proton.XmlInternal where
 
 
 -- does the char in arg #2 match any of the chars in arg #1?

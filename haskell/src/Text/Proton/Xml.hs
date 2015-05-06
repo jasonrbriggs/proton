@@ -15,7 +15,7 @@
 
 -}
 
-module Proton.Xml (
+module Text.Proton.Xml (
 Element(..),
 Attribute(..),
 ElementType(..),
@@ -35,8 +35,8 @@ render'
 
 import qualified Data.Map as Map
 
-import Proton.XmlTypes
-import Proton.XmlInternal
+import Text.Proton.XmlTypes
+import Text.Proton.XmlInternal
 
 
 containsAttribute :: String -> [Attribute] -> Bool
