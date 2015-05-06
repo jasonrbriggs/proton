@@ -51,17 +51,22 @@ class TestBasicFunctionality(unittest.TestCase):
         tmp.set_value('title', 'Basic Xhtml Page', '*')
         tmp.set_value('content', 'Content goes here')
         tmp.set_value('link', 'Link goes here')
-        tmp.set_attribute('link', 'href', 'http://www.google.com')
+        tmp.set_attribute('link', 'href', 'http://www.duckduckgo.com')
 
         out = str(tmp)
-        print(out)
+        
         et = etree.fromstring(out)
 
         self.assert_(et.find('head/title').text == 'Basic Xhtml Page', 'incorrect title')
         self.assert_(et.find('body/h1').text == 'Basic Xhtml Page', 'incorrect heading')
         self.assert_(et.find('body/div').text == 'Content goes here', 'incorrect body')
         self.assert_(et.find('body/a').text == 'Link goes here', 'incorrect anchor text')
-        self.assert_(et.find('body/a').attrib['href'] == 'http://www.google.com', 'incorrect anchor href')
+        self.assert_(et.find('body/a').attrib['href'] == 'http://www.duckduckgo.com', 'incorrect anchor href')
+        
+        f = open('../resources/basic-result.xhtml', 'w')
+        f.write(out)
+        f.close()
+        
 
     def test_basic_twice(self):
         tmp = template.get_template('basic.xhtml')
@@ -76,10 +81,9 @@ class TestBasicFunctionality(unittest.TestCase):
         tmp.set_value('title', 'Basic Xhtml Page 2', 1)
         tmp.set_value('content', 'Content goes here')
         tmp.set_value('link', 'Link goes here')
-        tmp.set_attribute('link', 'href', 'http://www.google.com')
+        tmp.set_attribute('link', 'href', 'http://www.duckduckgo.com')
 
         out2 = str(tmp)
-        print(out2)
         et2 = etree.fromstring(out2)
 
         self.assert_(et1.find('head/title').text == 'Basic Xhtml Page', 'incorrect title')

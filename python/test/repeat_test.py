@@ -32,7 +32,7 @@ class TestRepeatingFunctionality(unittest.TestCase):
 
         tmp.set_value('title', 'Repeating Xhtml Page', '*')
         tmp.set_value('link', 'This is a link to Google')
-        tmp.set_attribute('link', 'href', 'http://www.google.com')
+        tmp.set_attribute('link', 'href', 'http://www.duckduckgo.com')
         
         tmp.repeat('list-item', 5)
         for x in range(0, 5):
@@ -75,3 +75,11 @@ class TestRepeatingFunctionality(unittest.TestCase):
 
         li = et.findall("*//div[@id='menucontainer']")
         self.assert_(len(li) == 1, 'expecting 1 menu divs, actual %s' % len(li))
+        
+    def test_repeat4(self):
+        pg = template.get_template('repeat3.xhtml')
+        chunk = [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+        length = len(chunk)
+        pg.repeat('image', 20)
+        
+        print(str(pg))

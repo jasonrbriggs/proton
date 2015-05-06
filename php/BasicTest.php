@@ -11,7 +11,7 @@ class BasicTest extends PHPUnit_Framework_TestCase {
         $t->set_element('link', 'Link goes here');
         $t->set_attribute('link', 'href', 'http://www.duckduckgo.com');
     
-        compare($this, $t, '../resources/basic-output.xhtml');
+        compare($this, $t, '../resources/basic-result.xhtml');
     }
 }
 

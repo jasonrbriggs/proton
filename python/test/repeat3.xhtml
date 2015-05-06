@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+        <script src="../galleria/galleria-1.4.2.min.js"></script>
+		<link type="text/css" rel="stylesheet" href="../galleria/themes/classic/galleria.classic.css" />
+    </head>
+    <body>
+        <div class="galleria">
+			<img rid="image" aid="image" src="" />
+        </div>
+        <script>
+			$('.galleria').galleria({
+			width: '100%',
+			height: 650
+			});
+			
+            Galleria.loadTheme('galleria/themes/classic/galleria.classic.min.js');
+			Galleria.run('.galleria', {
+			  height: parseInt($('.galleria').css('height')),
+			  wait: true
+			 });
+        </script>
+    </body>
+</html>

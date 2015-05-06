@@ -17,8 +17,8 @@ repeatTest = TestCase (do
     tmp <- getTemplate tmps "testsuite/repeat.xhtml"
     
     tmp <- setElementValue tmp "title" "Repeating Xhtml Page" 0
-    tmp <- setElementValue tmp "link" "This is a link to Google" 0
-    tmp <- setAttributeValue tmp "link" "href" "http://www.google.com" 0
+    tmp <- setElementValue tmp "link" "This is a link to DuckDuckGo" 0
+    tmp <- setAttributeValue tmp "link" "href" "http://www.duckduckgo.com" 0
     tmp <- repeatElement tmp "list-item" 0 5    
     tmp <- repeatApplyValues tmp [1..5]
 
@@ -32,8 +32,8 @@ repeatTest2 = TestCase (do
     tmp <- getTemplate tmps "testsuite/repeat.xhtml"
     
     tmp <- setElementValue tmp "title" "Repeating Xhtml Page" 0
-    tmp <- setElementValue tmp "link" "This is a link to Google" 0
-    tmp <- setAttributeValue tmp "link" "href" "http://www.google.com" 0
+    tmp <- setElementValue tmp "link" "This is a link to DuckDuckGo" 0
+    tmp <- setAttributeValue tmp "link" "href" "http://www.duckduckgo.com" 0
     
     tmp <- setElementValues tmp "list-item" (map (\x -> "test" ++ (show x)) [0..4])
 
