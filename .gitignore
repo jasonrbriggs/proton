@@ -49,3 +49,4 @@ dist
 .lein-*
 
 .dist-buildwrapper
+.cabal-sandbox
