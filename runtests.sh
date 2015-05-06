@@ -23,3 +23,11 @@ cd php
 phpunit --bootstrap autoload.php .
 check_result "PHP"
 cd ..
+
+cd java
+cd proton-utils
+mvn clean install
+cd ../proton
+mvn clean install
+check_result "Java"
+cd ../..
