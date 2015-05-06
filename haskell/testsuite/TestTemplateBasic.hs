@@ -86,7 +86,7 @@ twoTemplatesTest = TestCase (do
     checkResult s2 "testsuite/twotemplates-result.xhtml"
     )
 
-template_tests = TestList [
+templateTests = [
         TestLabel "Basic Template Test" basicTest,
         TestLabel "Basic Template Test2" basicTest2,
         TestLabel "Basic Namespace Test" basicWithNamespaceTest,

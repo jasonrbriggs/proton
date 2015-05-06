@@ -42,6 +42,4 @@ blogTest = TestCase (do
     )
 
     
-template_tests = TestList [
-        TestLabel "Blog Example Test" blogTest
-        ]
+templateTests = [ TestLabel "Blog Example Test" blogTest ]

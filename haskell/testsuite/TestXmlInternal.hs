@@ -79,11 +79,11 @@ splitUntilCloseTest = TestCase (do
     )
 
 
-xml_tests = TestList [TestLabel "Matches Test" matchesTest,
-                      TestLabel "Whitespace Test" isWhitespaceTest,
-                      TestLabel "Span Test 1" spanUntilTest1,
-                      TestLabel "Span Test 2" spanUntilTest2,
-                      TestLabel "Split On Test 1" splitOnTest1,
-                      TestLabel "Split On Test 2" splitOnTest2,
-                      TestLabel "Split Text Test" splitTextTest,
-                      TestLabel "Split Until Close Test" splitUntilCloseTest]
+xmlTests = [TestLabel "Matches Test" matchesTest,
+            TestLabel "Whitespace Test" isWhitespaceTest,
+            TestLabel "Span Test 1" spanUntilTest1,
+            TestLabel "Span Test 2" spanUntilTest2,
+            TestLabel "Split On Test 1" splitOnTest1,
+            TestLabel "Split On Test 2" splitOnTest2,
+            TestLabel "Split Text Test" splitTextTest,
+            TestLabel "Split Until Close Test" splitUntilCloseTest]

@@ -19,6 +19,6 @@ hidingTest = TestCase (do
     )
 
     
-template_tests = TestList [
+templateTests = [
         TestLabel "Hiding Test 1" hidingTest
         ]

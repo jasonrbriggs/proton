@@ -94,7 +94,7 @@ repeatTestComplex = TestCase (do
     assertEqual "" "" ""
     )
     
-template_tests = TestList [
+templateTests = [
         TestLabel "Repeat Test" repeatTest,
         TestLabel "Repeat Test 2" repeatTest2
         --TestLabel "Repeat Test Complex" repeatTestComplex

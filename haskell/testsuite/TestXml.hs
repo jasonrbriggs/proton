@@ -61,7 +61,7 @@ findAttributeTest2 = TestCase (do
     assertEqual "Attribute value should be 'test8'" "test8" (attvalue att)
     )
 
-xml_tests = TestList [TestLabel "Basic Parse Test" basicParseTest,
+xmlTests = [TestLabel "Basic Parse Test" basicParseTest,
                       TestLabel "Contains Attribute Test1" containsAttributeTest1,
                       TestLabel "Copy Elements Test" copyElementsTest,
                       TestLabel "Copy Element Test" copyElementTest,

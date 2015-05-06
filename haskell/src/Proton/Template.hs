@@ -134,8 +134,8 @@ setElementValues tmp eid values = do
 setElementValues' :: Template -> String -> [String] -> Integer -> IO Template
 setElementValues' tmp _ [] _ = return tmp
 setElementValues' tmp eid (s:ss) pos = do
-    tmp <- setElementValue tmp eid s pos
-    setElementValues' tmp eid ss (pos + 1)
+    newTmp <- setElementValue tmp eid s pos
+    setElementValues' newTmp eid ss (pos + 1)
 
 
 setAttributeValue :: Template -> String -> String -> String -> Integer -> IO Template
