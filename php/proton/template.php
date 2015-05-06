@@ -188,13 +188,11 @@ class Template {
     
     function __toString() {
         ob_start();
-        
         $this->parse($this->doc);
-    
         $rtn = ob_get_contents();
         ob_end_clean();
     
-        return $rtn;
+        return "<?xml version=\"" . $this->dom->version . "\" encoding=\"" . $this->dom->encoding . "\" ?>\r\n" . $this->dom->saveXml($this->dom->doctype) . "\r\n" . $rtn;
     }
 }
 
