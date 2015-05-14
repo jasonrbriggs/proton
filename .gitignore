@@ -50,3 +50,6 @@ dist
 
 .dist-buildwrapper
 .cabal-sandbox
+
+*.hi
+*.o
