@@ -1,5 +1,5 @@
 name:                proton-haskell
-version:             0.4
+version:             0.6
 synopsis:            Simple XML templating library
 description:         Template library which uses three attributes (eid, aid, rid) in xml tags in order to add dynamic content to an xml/xhtml document.
 license:             Apache-2.0

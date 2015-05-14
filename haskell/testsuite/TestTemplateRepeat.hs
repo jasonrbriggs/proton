@@ -14,7 +14,7 @@ repeatApplyValues tmp (x:xs) = do
 
 repeatTest = TestCase (do
     tmps <- loadTemplates "testsuite"
-    tmp <- getTemplate tmps "testsuite/repeat.xhtml"
+    tmp <- getTemplate tmps "repeat.xhtml"
     
     tmp <- setElementValue tmp "title" "Repeating Xhtml Page" 0
     tmp <- setElementValue tmp "link" "This is a link to DuckDuckGo" 0
@@ -29,7 +29,7 @@ repeatTest = TestCase (do
 
 repeatTest2 = TestCase (do
     tmps <- loadTemplates "testsuite"
-    tmp <- getTemplate tmps "testsuite/repeat.xhtml"
+    tmp <- getTemplate tmps "repeat.xhtml"
     
     tmp <- setElementValue tmp "title" "Repeating Xhtml Page" 0
     tmp <- setElementValue tmp "link" "This is a link to DuckDuckGo" 0
@@ -65,7 +65,7 @@ repeatTestComplex = TestCase (do
     tmp.set_attribute('taglink', 'href', '/tags/testtag9', 8)
     -}
     tmps <- loadTemplates "testsuite"
-    tmp <- getTemplate tmps "testsuite/repeat-complex.xhtml"
+    tmp <- getTemplate tmps "repeat-complex.xhtml"
     
     tmp <- repeatElement tmp "posts" 0 5
     

@@ -8,7 +8,7 @@ import Utils
 
 basicTest = TestCase (do
     tmps <- loadTemplates "testsuite"
-    tmp <- getTemplate tmps "testsuite/basic.xhtml"
+    tmp <- getTemplate tmps "basic.xhtml"
     tmp <- setElementValue tmp "title" "Basic Xhtml Page" 0
     tmp <- setElementValue tmp "content" "Content goes here" 0
     tmp <- setElementValue tmp "link" "Link goes here" 0
@@ -21,7 +21,7 @@ basicTest = TestCase (do
 
 basicTest2 = TestCase (do
     tmps <- loadTemplates "testsuite"
-    tmp <- getTemplate tmps "testsuite/basic.xhtml"
+    tmp <- getTemplate tmps "basic.xhtml"
     tmp <- setElementValue tmp "title" "Basic Xhtml Page1" 1
     tmp <- setElementValue tmp "title" "Basic Xhtml Page2" 2
     tmp <- setElementValue tmp "content" "Content goes here" 0
@@ -36,7 +36,7 @@ basicTest2 = TestCase (do
 
 basicWithNamespaceTest = TestCase (do
     tmps <- loadTemplates "testsuite"
-    tmp <- getTemplate tmps "testsuite/basic-with-namespace.xml"
+    tmp <- getTemplate tmps "basic-with-namespace.xml"
     tmp <- repeatElement tmp "urls" 0 2
     tmp <- setElementValue tmp "url" "http://testhost/test1.html" 1
     tmp <- setElementValue tmp "last-modified" "2012-01-01T23:59:59" 1
@@ -49,9 +49,9 @@ basicWithNamespaceTest = TestCase (do
 
 includeTest = TestCase (do
     tmps <- loadTemplates "testsuite"
-    tmp <- getTemplate tmps "testsuite/include1.xhtml"
+    tmp <- getTemplate tmps "include1.xhtml"
     tmp <- setElementValue tmp "title" "Page Title" 0
-    tmp <- include tmp "include-content" "testsuite/include2.xhtml" 0
+    tmp <- include tmp "include-content" "include2.xhtml" 0
     tmp <- setElementValue tmp "para1" "First paragraph of text" 0
     tmp <- setElementValue tmp "para2" "Second paragraph of text" 0
     
@@ -74,9 +74,9 @@ applyTwoTemplates tmp = do
 
 twoTemplatesTest = TestCase (do
     tmps <- loadTemplates "testsuite"
-    tmp1 <- getTemplate tmps "testsuite/twotemplates.xml"
+    tmp1 <- getTemplate tmps "twotemplates.xml"
     tmp1 <- applyTwoTemplates tmp1
-    tmp2 <- getTemplate tmps "testsuite/twotemplates.xhtml"
+    tmp2 <- getTemplate tmps "twotemplates.xhtml"
     tmp2 <- applyTwoTemplates tmp2
     
     s1 <- renderTemplate tmp1

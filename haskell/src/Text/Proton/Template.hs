@@ -17,6 +17,7 @@
 
 module Text.Proton.Template (
 Template(..),
+Templates(..),
 setElementValue,
 setElementValues,
 setAttributeValue,
@@ -37,6 +38,9 @@ import Text.Proton.Xml as Xml
 import Text.Proton.XmlTypes as XmlTypes
 
 
+-- | A data value is used to populate an element/attribute in an xml document
+-- It denotes either an element value (string) and the index position to set, or an attribute name, with value and index position,
+-- or the number of times to repeat an element, or to hide an element
 data DataValue = DataValue { dval :: String, dpos :: Integer }
                | DataNameValue { dnname :: String, dnval :: String, dnpos :: Integer }
                | Repeat Integer
@@ -44,12 +48,15 @@ data DataValue = DataValue { dval :: String, dpos :: Integer }
                 deriving (Show)
 
 
+-- | A map of element ids to DataValues, and attribute ids to DataValues
 data DataMap = DataMap { eidMap :: Map.Map String [DataValue], aidMap :: Map.Map String [DataValue] }
+
 
 instance Show DataMap where
     show (DataMap eid aid) = "DataMap: " ++ show eid ++ "," ++ show aid
 
 
+-- | A template is described by a root xml element, a DataMap, and the reference to the Templates instance
 data Template = Template { xml :: XmlTypes.Element, dataMap :: DataMap, tmpsref :: Templates }
               | NoTemplate
 
@@ -58,8 +65,9 @@ instance Show Template where
   show (Template _ dm _) = "Template: " ++ show dm
   show (NoTemplate) = "NoTemplate"
   
-  
-data Templates = Templates { tmplMap :: Map.Map String Template }
+
+-- | Templates comprises a map of file names to Template instances
+data Templates = Templates { dir :: String, tmplMap :: Map.Map String Template }
                | DummyTemplates
     deriving (Show)
 
@@ -69,15 +77,15 @@ validExt f = isSuffixOf "xhtml" f || isSuffixOf "xml" f
 
 
 getValidFiles :: FilePath -> IO [String]
-getValidFiles dir = do
-    d <- getDirectoryContents dir
-    return (map (\x -> dir ++ [pathSeparator] ++ x) (filter validExt d))
+getValidFiles path = do
+    d <- getDirectoryContents path
+    return (map (\x -> x) (filter validExt d))
 
 
 loadTemplates :: String -> IO Templates
-loadTemplates dir = do
-    let tmps = Templates Map.empty
-    dircontents <- getValidFiles dir
+loadTemplates path = do
+    let tmps = Templates path Map.empty
+    dircontents <- getValidFiles path
     loadTemplates' tmps dircontents
 
 
@@ -93,7 +101,8 @@ loadTemplate tmps name =
     if Map.member name (tmplMap tmps) 
         then return tmps
         else do
-            x <- parseXmlFile name
+            let d = dir tmps
+            x <- parseXmlFile $ d ++ [pathSeparator] ++ name
             let t = Template x (DataMap Map.empty Map.empty) DummyTemplates
             let templateMap = tmplMap tmps
             return tmps { tmplMap = Map.insert name t templateMap }
@@ -113,6 +122,7 @@ setElementValue tmp eid value pos = do
     let newem = Map.insert eid (elemlist ++ [DataValue value pos]) em
     let newdm = DataMap newem am
     return (Template x newdm tmps)
+
 
 extractAttributes :: Template -> (DataMap, Map.Map String [DataValue], Map.Map String [DataValue], XmlTypes.Element, Templates, ElementType, String, [Attribute], [Element])
 extractAttributes tmp = do

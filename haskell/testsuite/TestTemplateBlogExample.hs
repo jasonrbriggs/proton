@@ -24,7 +24,7 @@ setTextAndLink' tmp name (x:xs) num = do
 
 blogTest = TestCase (do
     tmps <- loadTemplates "testsuite"
-    tmp <- getTemplate tmps "testsuite/blogexample.xhtml"
+    tmp <- getTemplate tmps "blogexample.xhtml"
     
     tmp <- setElementValue tmp "title" "My Test Blog" 0
     
