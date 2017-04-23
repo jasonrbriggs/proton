@@ -16,7 +16,7 @@
 from distutils.core import setup, Command
 import proton
 import unittest
-
+from Cython.Build import cythonize
 
 class TestCommand(Command):
     user_options = [ ('test=', 't', 'specific test to run') ]
@@ -40,7 +40,7 @@ class TestCommand(Command):
 
 setup(
     name = 'proton',
-    version = '%s-python' % proton.__version__,
+    version = proton.__version__,
     description = 'Proton Template Engine',
     license = 'LGPL',
     url = 'https://github.com/jasonrbriggs/proton',
