@@ -6,6 +6,15 @@ import Text.Proton.Template
 import Utils
 
 
+noTemplateTest = TestCase (do
+    tmps <- loadTemplates "invalid"
+    tmp <- getTemplate tmps "whatever"
+    
+    case tmp of
+        NoTemplate -> return ()
+        _          -> assertFailure "Should be NoTemplate"
+    )
+
 basicTest = TestCase (do
     tmps <- loadTemplates "testsuite"
     tmp <- getTemplate tmps "basic.xhtml"
@@ -87,6 +96,7 @@ twoTemplatesTest = TestCase (do
     )
 
 templateTests = [
+        TestLabel "No Template Test" noTemplateTest,
         TestLabel "Basic Template Test" basicTest,
         TestLabel "Basic Template Test2" basicTest2,
         TestLabel "Basic Namespace Test" basicWithNamespaceTest,

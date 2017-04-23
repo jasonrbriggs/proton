@@ -85,8 +85,14 @@ getValidFiles path = do
 loadTemplates :: String -> IO Templates
 loadTemplates path = do
     let tmps = Templates path Map.empty
-    dircontents <- getValidFiles path
-    loadTemplates' tmps dircontents
+    direxists <- doesDirectoryExist path
+    if not direxists
+        then do
+            putStrLn $ "No such directory: " ++ path
+            return tmps
+        else do
+            dircontents <- getValidFiles path
+            loadTemplates' tmps dircontents
 
 
 loadTemplates' :: Templates -> [String] -> IO Templates
@@ -111,8 +117,12 @@ loadTemplate tmps name =
 getTemplate  :: Templates -> String -> IO Template
 getTemplate tmps name = do
     let mp = tmplMap tmps
-    let (Template x dm _) = Map.findWithDefault NoTemplate name mp
-    return (Template x dm tmps)
+    let t = Map.findWithDefault NoTemplate name mp
+    case t of 
+        NoTemplate -> return t
+        _          -> do 
+            let (Template x dm _) = t
+            return (Template x dm tmps)
 
 
 setElementValue :: Template -> String -> String -> Integer -> IO Template
