@@ -59,7 +59,6 @@ var templates: Table[string, Template] = tables.initTable[string, Template]()
 
 # General utilities
 
-
 proc indexof*(i:int): IndexType =
     return IndexType(pos: i)
 
@@ -87,19 +86,24 @@ proc putmaplist[T](tab: var Table[string, seq[T]], key:string, value:T) =
         tab[key] = @[value]
 
 
-proc delseq[T](items:var seq[T], item:T) =
+proc idxseq[T](items: seq[T], item:T): int =
     var pos = 0
     for i in items:
         if i == item:
-            items.delete(pos)
-            return
+            return pos
         pos += 1
-    return
+    return -1
+
+
+proc delseq[T](items:var seq[T], item:T): int =
+    var pos = idxseq(items, item)
+    if pos >= 0:
+        items.delete(pos)
+    return pos
 
 
 proc openArraySize(oa: openArray[string]): string =
     oa.len.`$`
-
 
 
 # XML related
@@ -169,6 +173,22 @@ proc print*(f:File, tmp:Template) =
 
 # template related
 
+proc storeattrs(tmp:Template, elem:Element) =
+    if hasKey(elem.attributes, "eid"):
+        putmaplist[Element](tmp.eidmap, elem.attributes["eid"], elem)
+    if hasKey(elem.attributes, "aid"):
+        putmaplist[Element](tmp.aidmap, elem.attributes["aid"], elem)
+    if hasKey(elem.attributes, "rid"):
+        putmaplist[Element](tmp.ridmap, elem.attributes["rid"], elem)
+
+
+proc storeallattrs(tmp:Template, node:Node) =
+    if node.nodeType == ntElement:
+        var elem = cast[Element](node)
+        storeattrs(tmp, elem)
+    for child in node.children:
+        storeallattrs(tmp, child)
+
 
 proc setvalue*(tmp:Template, eid:string, value:string, idx:IndexType = INDEX_ALL, append:bool = false) =
     if hasKey(tmp.eidmap, eid):
@@ -201,12 +221,29 @@ proc hide*(tmp:Template, eid:string, idx:IndexType = INDEX_ALL) =
         var elemlist = tmp.eidmap[eid]
         if idx.all:
             for elem in elemlist:
-                delseq(elem.parent.children, elem)
+                discard delseq(elem.parent.children, elem)
         elif idx.pos < len(elemlist):
             var elem = elemlist[idx.pos]
-            delseq(elem.parent.children, elem)
+            discard delseq(elem.parent.children, elem)
             elemlist.delete(idx.pos)
         del(tmp.eidmap, eid)
+
+
+proc replace*(tmp:Template, eid:string, value:Template, idx:IndexType = INDEX_ALL) =
+    if hasKey(tmp.eidmap, eid):
+        var replacementroot = value.doc.root
+        var elemlist = tmp.eidmap[eid]
+        if idx.all:
+            for elem in elemlist:
+                var parent = elem.parent
+                var pos = delseq(parent.children, elem)
+                insert(parent.children, replacementroot, pos)
+        elif idx.pos < len(elemlist):
+            var elem = elemlist[idx.pos]
+            var parent = elem.parent
+            var pos = delseq(parent.children, elem)
+            insert(parent.children, replacementroot, pos)
+        storeallattrs(tmp, replacementroot)
 
 
 proc gettemplate*(name:string): Template =
@@ -244,10 +281,7 @@ proc gettemplate*(name:string): Template =
                         currentelem = elem
                         elem.attributes = attrs
                     if elem != nil:
-                        if hasKey(elem.attributes, "eid"):
-                            putmaplist[Element](tmp.eidmap, elem.attributes["eid"], elem)
-                        if hasKey(elem.attributes, "aid"):
-                            putmaplist[Element](tmp.aidmap, elem.attributes["aid"], elem)
+                        storeattrs(tmp, elem)
             else:
                 var cdata = makecdata(currentelem, i)
 

@@ -33,7 +33,7 @@ proc writeandcompare(tmp:Template, fname:string, compareto:string) =
 suite "Proton tests":
     setup:
         echo "\n"
-  
+
     test "basic functionality":
         var tmp = gettemplate("../resources/basic.xhtml")
         setvalue(tmp, "title", "Basic Xhtml Page")
@@ -75,3 +75,24 @@ suite "Proton tests":
 
         writeandcompare(tmp, "tmp/hiding.xhtml", "../resources/hiding-result.xhtml")
 
+    test "hiding 2":
+        var tmp = gettemplate("../resources/hiding2.xhtml")
+        setvalue(tmp, "title", "Navigation Example")
+        hide(tmp, "autopayments")
+        hide(tmp, "exchange")
+        hide(tmp,"transactions")
+
+        writeandcompare(tmp, "tmp/hiding2.xhtml", "../resources/hiding-result2.xhtml")
+
+    test "hiding 3":
+        var tmp = gettemplate("../resources/hiding3.xhtml")
+        setvalue(tmp, "title", "Hiding Xhtml Page")
+
+        var tmp2 = gettemplate("../resources/hiding-include.xhtml")
+
+        replace(tmp, "replaced-element", tmp2)
+
+        setvalue(tmp, "not-hidden", "Not hidden content")
+        hide(tmp, "hidden-element")
+
+        writeandcompare(tmp, "tmp/hiding3.xhtml", "../resources/hiding-result3.xhtml")
