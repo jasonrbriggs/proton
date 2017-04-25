@@ -31,7 +31,7 @@ class TestRepeatingFunctionality(unittest.TestCase):
         tmp = template.get_template('repeat.xhtml')
 
         tmp.set_value('title', 'Repeating Xhtml Page', '*')
-        tmp.set_value('link', 'This is a link to Google')
+        tmp.set_value('link', 'This is a link to DuckDuckGo')
         tmp.set_attribute('link', 'href', 'http://www.duckduckgo.com')
         
         tmp.repeat('list-item', 5)
