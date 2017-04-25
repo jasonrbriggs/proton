@@ -96,3 +96,18 @@ suite "Proton tests":
         hide(tmp, "hidden-element")
 
         writeandcompare(tmp, "tmp/hiding3.xhtml", "../resources/hiding-result3.xhtml")
+
+    test "repeat 1":
+        var tmp = gettemplate("../resources/repeat.xhtml")
+
+        setvalue(tmp, "title", "Repeating Xhtml Page")
+        setattribute(tmp, "link", "href", "http://www.duckduckgo.com")
+        setvalue(tmp, "link", "This is a link to DuckDuckGo")
+        repeat(tmp, "list-item", 5)
+
+        var x = 0
+        while x < 5:
+            setvalue(tmp, "list-item", "test" & x.`$`, indexof(x))
+            x += 1
+
+        writeandcompare(tmp, "tmp/repeat.xhtml", "../resources/repeat-result.xhtml")

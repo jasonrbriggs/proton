@@ -246,6 +246,18 @@ proc replace*(tmp:Template, eid:string, value:Template, idx:IndexType = INDEX_AL
         storeallattrs(tmp, replacementroot)
 
 
+proc repeat*(tmp:Template, rid:string, count:int) =
+    if hasKey(tmp.ridmap, rid):
+        var elem = tmp.ridmap[rid][0]
+        var parent = elem.parent
+        var pos = idxseq(parent.children, elem)
+        var x = 1
+        while x < count:
+            x += 1
+            var newelem = copy(elem)
+            insert(parent.children, newelem, pos + x)
+            storeallattrs(tmp, newelem)
+
 proc gettemplate*(name:string): Template =
     if not hasKey(templates, name):
         var f = open(name)
