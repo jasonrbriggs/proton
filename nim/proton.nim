@@ -32,6 +32,7 @@ type
 
     Element = ref object of Node
         attributes: StringTableRef
+        attribute_names: seq[string]
 
     Document = ref object of Node
         xmldecl: string
@@ -136,9 +137,9 @@ proc maketemplate(): Template =
 # xml output
 
 proc printxmlattr(f:File, elem:Element) =
-    for kp in strtabs.pairs(elem.attributes):
-        if kp.key notin attribnames:
-            write(f, " " & kp.key & "=\"" & kp.value & "\"")
+    for key in elem.attribute_names:
+        if key notin attribnames:
+            write(f, " " & key & "=\"" & elem.attributes[key] & "\"")
 
 proc printnode(f:File, node:Node) =
     case node.nodeType
@@ -157,8 +158,10 @@ proc printnode(f:File, node:Node) =
             write(f, " />")
         of ntDocument:
             var doc = cast[Document](node)
-            write(f, doc.xmldecl & "\n")
-            write(f, doc.doctype & "\n")
+            if doc.xmldecl != nil:
+                write(f, doc.xmldecl & "\n")
+            if doc.doctype != nil:
+                write(f, doc.doctype & "\n")
             printnode(f, doc.root)
         of ntCData:
             var cdata = cast[CData](node)
@@ -278,20 +281,24 @@ proc gettemplate*(name:string): Template =
                     var elem: Element
                     var tagname = matches[0]
                     var attrs = newStringTable()
+                    var attr_names: seq[string] = @[]
                     var attrmatches: array[8, string]
                     for match in re.findAll(matches[1], re"""([^\s=]+\s*=\s*["']{1}[^"']*["']{1})"""):
                         if match =~ re"""([^=]+)=["']{1}([^"']*)""":
                             attrs[matches[0]] = matches[1]
+                            attr_names.add(matches[0])
                     if strutils.startsWith(i, "</"):
                         if currentelem.tag == tagname:
                             currentelem = currentelem.parent
                     elif strutils.endsWith(i, "/>"):
                         elem = makeelem(currentelem, tagname, true)
                         elem.attributes = attrs
+                        elem.attribute_names = attr_names
                     else:
                         elem = makeelem(currentelem, tagname)
                         currentelem = elem
                         elem.attributes = attrs
+                        elem.attribute_names = attr_names
                     if elem != nil:
                         storeattrs(tmp, elem)
             else:

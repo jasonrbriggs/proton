@@ -111,3 +111,10 @@ suite "Proton tests":
             x += 1
 
         writeandcompare(tmp, "tmp/repeat.xhtml", "../resources/repeat-result.xhtml")
+
+    test "repeat 2":
+        var tmp = gettemplate("../resources/repeat2.xhtml")
+
+        repeat(tmp, "posts", 5)
+
+        writeandcompare(tmp, "tmp/repeat2.xhtml", "../resources/repeat-result2.xhtml")
