@@ -14,7 +14,7 @@ proc compare(c1:string, c2:string) =
     var fc1 = open(c1)
     var sc1 = stripWhitespace(readAll(fc1))
     close(fc1)
-    
+
     var fc2 = open(c2)
     var sc2 = stripWhitespace(readAll(fc2))
     close(fc2)
@@ -40,7 +40,7 @@ suite "Proton tests":
         setvalue(tmp, "content", "Content goes here")
         setvalue(tmp, "link", "Link goes here")
         setattribute(tmp, "link", "href", "http://www.duckduckgo.com")
-        
+
         var f = open("tmp/basic1.xhtml", fmWrite)
         print(f, tmp)
         close(f)
@@ -53,6 +53,22 @@ suite "Proton tests":
         close(f2)
         compare("../resources/basic-unprocessed-result.xhtml", "tmp/basic2.xhtml")
 
+    test "basic functionality - write to sequence":
+        var tmp = gettemplate("../resources/basic.xhtml")
+        setvalue(tmp, "title", "Basic Xhtml Page")
+        setvalue(tmp, "content", "Content goes here")
+        setvalue(tmp, "link", "Link goes here")
+        setattribute(tmp, "link", "href", "http://www.duckduckgo.com")
+
+        var s: seq[string] = @[]
+        print(s, tmp)
+
+        var output = join(s, "")
+
+        var f = open("tmp/basic1seq.xhtml", fmWrite)
+        write(f, output)
+        close(f)
+        compare("../resources/basic-result.xhtml", "tmp/basic1seq.xhtml")
 
     test "basic - append":
         var tmp = gettemplate("../resources/basic-append.xhtml")

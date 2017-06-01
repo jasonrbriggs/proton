@@ -45,6 +45,14 @@ type
         aidmap: Table[string, seq[Element]]
         ridmap: Table[string, seq[Element]]
 
+    OutputType = enum
+        otFile,
+        otSeq
+
+    Output = object
+        case kind: OutputType
+        of otFile: f: File
+        of otSeq: s: seq[string]
 
 const
     XMLDECL_PREFIX = "<?"
@@ -136,42 +144,57 @@ proc maketemplate(): Template =
 
 # xml output
 
-proc printxmlattr(f:File, elem:Element) =
+proc write(o:var Output, s:string) =
+    if o.kind == otFile:
+        write(o.f, s)
+    else:
+        add(o.s, s)
+
+
+proc printxmlattr(o:var Output, elem:Element) =
     for key in elem.attribute_names:
         if key notin attribnames:
-            write(f, " " & key & "=\"" & elem.attributes[key] & "\"")
+            write(o, " " & key & "=\"" & elem.attributes[key] & "\"")
 
-proc printnode(f:File, node:Node) =
+
+proc printnode(o:var Output, node:Node) =
     case node.nodeType
         of ntElement:
-            write(f, "<" & node.tag)
+            write(o, "<" & node.tag)
             var elem = cast[Element](node)
-            printxmlattr(f, elem)
-            write(f, ">")
+            printxmlattr(o, elem)
+            write(o, ">")
             for child in elem.children:
-                printnode(f, child)
-            write(f, "</" & node.tag & ">")
+                printnode(o, child)
+            write(o, "</" & node.tag & ">")
         of ntClosedElement:
-            write(f, "<" & node.tag)
+            write(o, "<" & node.tag)
             var elem = cast[Element](node)
-            printxmlattr(f, elem)
-            write(f, " />")
+            printxmlattr(o, elem)
+            write(o, " />")
         of ntDocument:
             var doc = cast[Document](node)
             if doc.xmldecl != nil:
-                write(f, doc.xmldecl & "\n")
+                write(o, doc.xmldecl & "\n")
             if doc.doctype != nil:
-                write(f, doc.doctype & "\n")
-            printnode(f, doc.root)
+                write(o, doc.doctype & "\n")
+            printnode(o, doc.root)
         of ntCData:
             var cdata = cast[CData](node)
-            write(f, cdata.content)
+            write(o, cdata.content)
         else:
             discard
 
 
 proc print*(f:File, tmp:Template) =
-    printnode(f, tmp.doc)
+    var o: Output = Output(kind: otFile, f:f)
+    printnode(o, tmp.doc)
+
+
+proc print*(s:var seq[string], tmp:Template) =
+    var o: Output = Output(kind: otSeq, s:s)
+    printnode(o, tmp.doc)
+    s = o.s
 
 
 # template related
@@ -264,12 +287,12 @@ proc repeat*(tmp:Template, rid:string, count:int) =
 proc gettemplate*(name:string): Template =
     if not hasKey(templates, name):
         var f = open(name)
-        var s = readAll(f)
+        var s = strip(readAll(f), false, true)
         close(f)
 
         var tmp = maketemplate()
         var currentelem: Node = tmp.doc
-        
+
         for i in re.findAll(s, re"<[^>]+>|[^<]+"):
             if strutils.startsWith(i, XMLDECL_PREFIX):
                 tmp.doc.xmldecl = i
@@ -305,5 +328,5 @@ proc gettemplate*(name:string): Template =
                 var cdata = makecdata(currentelem, i)
 
         templates[name] = tmp
-    return copy(templates[name])    
+    return copy(templates[name])
 

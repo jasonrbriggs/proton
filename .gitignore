@@ -57,3 +57,4 @@ dist
 nim/tmp
 nim/tests/nimcache
 basic_test
+src/nimcache
