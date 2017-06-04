@@ -2,6 +2,7 @@ all: clean compile
 
 clean:
 	rm -f dist/proton
+	rm -rf src/nimcache
 
 
 compile:

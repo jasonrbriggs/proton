@@ -284,8 +284,9 @@ proc repeat*(tmp:Template, rid:string, count:int) =
             insert(parent.children, newelem, pos + x)
             storeallattrs(tmp, newelem)
 
-proc gettemplate*(name:string): Template =
-    if not hasKey(templates, name):
+
+proc gettemplate*(name:string, cache:bool = true): Template =
+    if not hasKey(templates, name) or not cache:
         var f = open(name)
         var s = strip(readAll(f), false, true)
         close(f)
@@ -327,6 +328,9 @@ proc gettemplate*(name:string): Template =
             else:
                 var cdata = makecdata(currentelem, i)
 
-        templates[name] = tmp
+        if cache:
+            templates[name] = tmp
+        else:
+            return tmp
     return copy(templates[name])
 
