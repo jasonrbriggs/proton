@@ -285,7 +285,7 @@ proc repeat*(tmp:Template, rid:string, count:int) =
             storeallattrs(tmp, newelem)
 
 
-proc gettemplate*(name:string, cache:bool = true): Template =
+proc gettemplate*(name:string, cache:bool = true): Template {.gcsafe.} =
     if not hasKey(templates, name) or not cache:
         var f = open(name)
         var s = strip(readAll(f), false, true)
