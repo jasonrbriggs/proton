@@ -54,7 +54,7 @@ class TestBasicFunctionality(unittest.TestCase):
         tmp.set_attribute('link', 'href', 'http://www.duckduckgo.com')
 
         out = str(tmp)
-        
+
         et = etree.fromstring(out)
 
         self.assert_(et.find('head/title').text == 'Basic Xhtml Page', 'incorrect title')
@@ -62,11 +62,10 @@ class TestBasicFunctionality(unittest.TestCase):
         self.assert_(et.find('body/div').text == 'Content goes here', 'incorrect body')
         self.assert_(et.find('body/a').text == 'Link goes here', 'incorrect anchor text')
         self.assert_(et.find('body/a').attrib['href'] == 'http://www.duckduckgo.com', 'incorrect anchor href')
-        
+
         f = open('../resources/basic-result.xhtml', 'w')
         f.write(out)
         f.close()
-        
 
     def test_basic_twice(self):
         tmp = template.get_template('basic.xhtml')
@@ -102,7 +101,6 @@ class TestBasicFunctionality(unittest.TestCase):
         tmp.set_value('last-modified', '2012-01-02T12:59:59', 1)
 
         out = str(tmp)
-        print(out)
 
     def test_basic_list(self):
         tmp = template.get_template('basic-list.xhtml')
@@ -111,7 +109,6 @@ class TestBasicFunctionality(unittest.TestCase):
         tmp.set_value('list-item', lst)
 
         out = str(tmp)
-        print(out)
         et = etree.fromstring(out)
         li = et.findall('body/ul/li')
 
@@ -131,7 +128,6 @@ class TestBasicFunctionality(unittest.TestCase):
         tmp.set_value('prop2', 'A Link')
 
         out = str(tmp)
-        print(out)
 
         et = etree.fromstring(out)
         dd = et.findall('body/dl/dd')
@@ -148,7 +144,6 @@ class TestBasicFunctionality(unittest.TestCase):
         tmp.append('content', '<p>some additional content</p>')
 
         out = str(tmp)
-        print(out)
 
         et = etree.fromstring(out)
         title = et.findall('head/title')
@@ -182,3 +177,21 @@ class TestBasicFunctionality(unittest.TestCase):
         tmp.repeat('nonexistent', 10)
 
         out = str(tmp)
+
+    def test_basic_with_script(self):
+        tmp = template.get_template('basic-with-script.xhtml')
+        tmp.set_value('title', 'Basic Xhtml Page', '*')
+        tmp.set_value('content', 'Content goes here')
+        tmp.set_value('link', 'Link goes here')
+        tmp.set_attribute('link', 'href', 'http://www.duckduckgo.com')
+
+        out = str(tmp)
+
+        out = out.replace('>=', '&gt;=').replace('<=', '&lt;=').replace('&&', '&amp;&amp;')
+
+        et = etree.fromstring(out)
+
+        script = et.findall('body/script')
+        scriptval = etree.tostring(script[0]).decode().replace(' ', '').replace('\n', '')
+
+        self.assertEquals('<scripttype="text/javascript">if(someval&gt;=1000&amp;&amp;someval&lt;=2000){alert(\'something\')}</script>', scriptval)

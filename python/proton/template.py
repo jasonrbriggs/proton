@@ -3,6 +3,8 @@ import os
 import re
 import copy
 
+from more_itertools import peekable
+
 elem_re = re.compile(r'(<\?[^>]+\?>|<![^>]+>|<\/|\/>|<|>|[^<>\s]+|\s+)', re.DOTALL | re.MULTILINE)
 attrib_re = re.compile(r'\s*([^=]+)="([^"]*)"')
 SEQ_TYPES = (list, tuple)
@@ -38,7 +40,7 @@ class Element(object):
         return ''.join(l)
 
     def parse(self, src, template):
-        contentiter = elem_re.finditer(src)
+        contentiter = peekable(elem_re.finditer(src))
         in_tag = False
 
         current_elem = self
@@ -48,7 +50,11 @@ class Element(object):
         try:
             while 1:
                 text = next(contentiter).group(1)
-                #print('>>> here %s' % text)
+
+                if contentiter:
+                    peek_next = contentiter.peek()
+                    if peek_next is not None:
+                        peek_next = peek_next.group(1)
 
                 if text.startswith('<?'):
                     current_elem.children.append(TextElement(text))
@@ -70,14 +76,14 @@ class Element(object):
                     current_elem.closed = True
                     current_elem = current_elem.parent
 
-                elif text == '<':
+                elif text == '<' and peek_next != '=':
                     in_tag = True
                     tag = next(contentiter).group(1)
                     elem = Element(tag, current_elem)
                     current_elem.children.append(elem)
                     current_elem = elem
 
-                elif text == '>':
+                elif text == '>' and peek_next != '=':
                     self.__parse_tag(current_elem, tag_content)
                     in_tag = False
                     tag_content = ''
@@ -92,7 +98,6 @@ class Element(object):
                         else:
                             te = TextElement(text)
                             current_elem.children.append(te)
-
         except StopIteration:
             pass
 
@@ -369,8 +374,9 @@ def get_template(name):
     during the load, return None.
     """
     path = os.path.join(base_dir, name)
-
     if path not in templates:
+        if not os.path.exists(path):
+            raise RuntimeError('No such template %s' % path)
         try:
             templates[path] = Template(path)
         except IOError:
