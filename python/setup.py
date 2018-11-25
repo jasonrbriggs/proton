@@ -13,7 +13,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from distutils.core import setup, Command
+from setuptools import setup, Command
 import proton
 import unittest
 from Cython.Build import cythonize
