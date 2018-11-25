@@ -48,5 +48,6 @@ setup(
     author_email =  'jasonrbriggs@gmail.com',
     platforms = ['3.0', '3.1', '3.2', '3.3'],
     packages = ['proton', 'test'],
+    requires = 'more_iterutils',
     cmdclass = {'test': TestCommand}
 )
