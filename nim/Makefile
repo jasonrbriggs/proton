@@ -5,7 +5,7 @@ clean:
 	rm -rf src/nimcache
 
 compile:
-	nimble install
+	nimble install -y
 
-test:
+test: compile
 	nim c -p:. -r tests/basic_test
