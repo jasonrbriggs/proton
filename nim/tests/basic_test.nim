@@ -113,6 +113,12 @@ suite "Proton tests":
 
         writeandcompare(tmp, "tmp/hiding3.xhtml", "../resources/hiding-result3.xhtml")
 
+    test "replace with html content":
+        var tmp = gettemplate("../resources/basic.xhtml")
+        replaceHtml(tmp, "content", "<p>test</p>")
+
+        writeandcompare(tmp, "tmp/basic-replace-html.xhtml", "../resources/basic-replace-html-result.xhtml")
+
     test "repeat 1":
         var tmp = gettemplate("../resources/repeat.xhtml")
 
@@ -134,3 +140,19 @@ suite "Proton tests":
         repeat(tmp, "posts", 5)
 
         writeandcompare(tmp, "tmp/repeat2.xhtml", "../resources/repeat-result2.xhtml")
+
+    test "replace with html content 1":
+        var tmp = gettemplate("../resources/repeat3.xhtml")
+        repeat(tmp, "posts", 3)
+        replaceHtml(tmp, "post-content", "<p>test1</p>")
+
+        writeandcompare(tmp, "tmp/repeat3-1.xhtml", "../resources/repeat3-1-result.xhtml")
+
+    test "replace with html content 2":
+        var tmp = gettemplate("../resources/repeat3.xhtml")
+        repeat(tmp, "posts", 3)
+        replaceHtml(tmp, "post-content", "<p>test1</p>", indexof(0))
+        replaceHtml(tmp, "post-content", "<p>test2</p>", indexof(1))
+        replaceHtml(tmp, "post-content", "<p>test3</p>", indexof(2))
+
+        writeandcompare(tmp, "tmp/repeat3-2.xhtml", "../resources/repeat3-2-result.xhtml")

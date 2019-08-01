@@ -3,6 +3,7 @@ import strtabs
 import system
 import re
 import tables
+import typetraits
 
 type
     NodeType = enum
@@ -22,6 +23,7 @@ type
         value*: string
 
     Node = ref object of RootObj
+        id: int
         nodeType: NodeType
         parent: Node
         tag: string
@@ -58,12 +60,14 @@ const
     XMLDECL_PREFIX = "<?"
     DOCTYPE_PREFIX = "<!"
     INDEX_ALL* = IndexType(pos:0, all: true)
-
+    NULLTEMPLATES: Table[string, Template] = tables.initTable[string, Template]()
 
 var attribnames: array[3, string]
 attribnames = ["eid", "rid", "aid"]
 
 var templates: Table[string, Template] = tables.initTable[string, Template]()
+
+var counter: int = 0
 
 
 # General utilities
@@ -87,6 +91,13 @@ proc copy[T](x: T): T {.inline.} =
     tmp
 
 
+proc dumpids(items:seq[Node|Element]):seq[int] =
+    var s:seq[int] = @[]
+    for i in items:
+        add(s, i.id)
+    return s
+
+
 proc putmaplist[T](tab: var Table[string, seq[T]], key:string, value:T) =
     if hasKey(tab, key):
         var newval: seq[T] = tab[key] & value
@@ -95,10 +106,10 @@ proc putmaplist[T](tab: var Table[string, seq[T]], key:string, value:T) =
         tab[key] = @[value]
 
 
-proc idxseq[T](items: seq[T], item:T): int =
+proc idxseq(items: seq[Node], item:Node): int =
     var pos = 0
     for i in items:
-        if i == item:
+        if i == item and i.id == item.id:
             return pos
         pos += 1
     return -1
@@ -122,22 +133,31 @@ proc makeelem(par:Node, tagname:string, closed:bool = false): Element =
     var nt = ntElement
     if closed:
         nt = ntClosedElement
-    var elem = Element(nodeType:nt, tag:tagname, children:c, parent:par)
+    inc(counter)
+    var elem = Element(id:counter, nodeType:nt, tag:tagname, children:c, parent:par)
     addtoparent(par, elem)
     return elem
 
 
 proc makecdata(par:Node, cdata:string): CData =
-    var elem = CData(nodeType: ntCData, parent:par, content:cdata)
+    inc(counter)
+    var elem = CData(id:counter, nodeType:ntCData, parent:par, content:cdata)
     addtoparent(par, elem)
     return elem
+
+
+proc copynode(n:Node): Node =
+    var nn = copy(n)
+    nn.parent = n.parent
+    nn
 
 
 proc maketemplate(): Template =
     var em: Table[string, seq[Element]] = tables.initTable[string, seq[Element]]()
     var am: Table[string, seq[Element]] = tables.initTable[string, seq[Element]]()
     var rm: Table[string, seq[Element]] = tables.initTable[string, seq[Element]]()
-    var d = Document(nodeType:ntDocument)
+    inc(counter)
+    var d = Document(id:counter, nodeType:ntDocument)
     var tmp = Template(doc:d, eidmap:em, aidmap:am, ridmap:rm)
     return tmp
 
@@ -174,9 +194,9 @@ proc printnode(o:var Output, node:Node) =
             write(o, " />")
         of ntDocument:
             var doc = cast[Document](node)
-            if doc.xmldecl != nil:
+            if doc.xmldecl != "":
                 write(o, doc.xmldecl & "\n")
-            if doc.doctype != nil:
+            if doc.doctype != "":
                 write(o, doc.doctype & "\n")
             printnode(o, doc.root)
         of ntCData:
@@ -195,6 +215,23 @@ proc print*(s:var seq[string], tmp:Template) =
     var o: Output = Output(kind: otSeq, s:s)
     printnode(o, tmp.doc)
     s = o.s
+
+
+proc `$`(e:Node):string =
+    case e.nodeType
+        of ntElement:
+            var elem = cast[Element](e)
+            return "Element[" & elem.id.`$` & "," & elem.tag & "," & elem.attributes.`$` & "]"
+        of ntClosedElement:
+            var elem = cast[Element](e)
+            return "ClosedElement[" & elem.id.`$` & "," & elem.tag & "," & elem.attributes.`$` & "]"
+        of ntDocument:
+            return ""
+        of ntCData:
+            var cdata = cast[CData](e)
+            return "cdata[" & cdata.id.`$` & "," & replace(cdata.content, "\n", "\\n") & "]"
+        else:
+            discard   
 
 
 # template related
@@ -255,21 +292,32 @@ proc hide*(tmp:Template, eid:string, idx:IndexType = INDEX_ALL) =
         del(tmp.eidmap, eid)
 
 
-proc replace*(tmp:Template, eid:string, value:Template, idx:IndexType = INDEX_ALL) =
+proc replaceInternal(tmp:Template, eid:string, value:Node, idx:IndexType = INDEX_ALL):bool  =
     if hasKey(tmp.eidmap, eid):
-        var replacementroot = value.doc.root
         var elemlist = tmp.eidmap[eid]
         if idx.all:
             for elem in elemlist:
                 var parent = elem.parent
                 var pos = delseq(parent.children, elem)
-                insert(parent.children, replacementroot, pos)
+                insert(parent.children, value, pos)
         elif idx.pos < len(elemlist):
             var elem = elemlist[idx.pos]
             var parent = elem.parent
             var pos = delseq(parent.children, elem)
-            insert(parent.children, replacementroot, pos)
-        storeallattrs(tmp, replacementroot)
+            insert(parent.children, value, pos)
+        return true
+    return false
+
+
+proc replace*(tmp:Template, eid:string, value:Template, idx:IndexType = INDEX_ALL) =
+    var replacement = value.doc.root
+    if replaceInternal(tmp, eid, replacement, idx):
+        storeallattrs(tmp, replacement)
+
+
+proc replaceHtml*(tmp:Template, eid:string, value:string, idx:IndexType = INDEX_ALL) =
+    var replacement = CData(nodeType:ntCData, content:value)
+    discard replaceInternal(tmp, eid, replacement, idx)
 
 
 proc repeat*(tmp:Template, rid:string, count:int) =
@@ -279,14 +327,19 @@ proc repeat*(tmp:Template, rid:string, count:int) =
         var pos = idxseq(parent.children, elem)
         var x = 1
         while x < count:
-            x += 1
-            var newelem = copy(elem)
+            var newelem = copynode(elem)
+            inc(counter)
+            newelem.id = counter
             insert(parent.children, newelem, pos + x)
+            x += 1
             storeallattrs(tmp, newelem)
 
 
-proc gettemplate*(name:string, cache:bool = true): Template {.gcsafe.} =
-    if not hasKey(templates, name) or not cache:
+proc gettemplate*(name:string, cache:bool = true, tmps:Table[string, Template] = NULLTEMPLATES): Template {.gcsafe.} =
+    var local_templates = tmps
+    if local_templates == NULLTEMPLATES:
+        local_templates = templates
+    if not hasKey(tmps, name) or not cache:
         var f = open(name)
         var s = strip(readAll(f), false, true)
         close(f)
@@ -329,8 +382,8 @@ proc gettemplate*(name:string, cache:bool = true): Template {.gcsafe.} =
                 var cdata = makecdata(currentelem, i)
 
         if cache:
-            templates[name] = tmp
+            local_templates[name] = tmp
         else:
             return tmp
-    return copy(templates[name])
+    return copy(local_templates[name])
 
